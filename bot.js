@@ -1,5 +1,6 @@
 const discord = require('discord.js');
 const fs = require("fs");
+const _ = require("lodash");
 
 //Constants
 WATCHEDSETCODESDIRECTORY = __dirname + '/data';
@@ -89,6 +90,12 @@ var bot = new discord.Client();
 bot.on('ready', function (evt) {
     Log('Connected!');
     Log('Logged in as: ' + bot.username + ' - (' + bot.id + ')');
+    bot.user.setPresence({
+        activity: {
+            name: 'for MTG spoilers.',
+            type: 'WATCHING'
+        }
+    });
 
     // Read watched sets and start spoiler watches
     watchedSetcodes = readWatchedSets();
