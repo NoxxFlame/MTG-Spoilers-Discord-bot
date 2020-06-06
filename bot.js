@@ -10,7 +10,7 @@ SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
 var manamojis = {
     "0":"0_:344491158384410625",
-    "1":"1_:344491158723887107",
+    "1":"nicktatorship:533134948417142814",
     "10":"10:344491160280104984",
     "11":"11:344491159965401088",
     "12":"12:344491160435163137",
@@ -235,7 +235,7 @@ function generateDescriptionText(card) {
     return description.join('\n');
 }
 
-renderEmojis(text) {
+function renderEmojis(text) {
     return text.replace(/{[^}]+?}/ig, match => {
         const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
         return this.manamojis[code] ? '<:'+this.manamojis[code]+'>':'';
