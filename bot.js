@@ -9,10 +9,7 @@ SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
 // Initialize Discord Bot
 Log('Initializing bot...');
-var bot = new Discord.Client({
-   token: process.env.DISCORD_TOKEN,
-   autorun: true
-});
+var bot = new Discord.Client();
 
 //When bot is ready
 bot.on('ready', function (evt) {
@@ -369,4 +366,10 @@ function getDate() {
 
 function Log(message) {
     console.log(getDate() + " - " + message);
+}
+
+try {
+    bot.login(process.env.DISCORD_TOKEN);
+} catch(err) {
+    log.error(err);
 }
