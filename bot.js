@@ -236,7 +236,7 @@ function generateDescriptionText(card) {
 }
 
 function renderEmojis(text) {
-    return text.replace('_','').replace(/:(.*?):/g, match => {
+    return text.replace(/:(.*?):/g, match => {
         const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
         return manamojis[code] ? '<:'+manamojis[code]+'>':'';
     });
@@ -285,7 +285,6 @@ function generateEmbed(card, hasEmojiPermission) {
     const embed = new discord.MessageEmbed({
         title,
         description,
-        footer: {text: footer},
         url: card.scryfall_uri,
         color: getBorderColor(card.layout === 'transform' ? card.card_faces[0]:card),
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
