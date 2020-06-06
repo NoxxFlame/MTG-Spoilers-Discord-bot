@@ -92,7 +92,7 @@ bot.on('ready', function (evt) {
     Log('Logged in as: ' + bot.username + ' - (' + bot.id + ')');
     bot.user.setPresence({
         activity: {
-            name: 'for MTG spoilers.',
+            name: 'for MTG spoilers',
             type: 'WATCHING'
         }
     });
