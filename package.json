@@ -5,7 +5,7 @@
     "main": "bot.js",
     "author": "Jozeevis",
     "dependencies": {
-        "discord.js": "^12.1.1",
+        "@discordjs/collection": "^0.1.5",
         "lodash": "^4.17.12",
         "winston": "^3.2.1"
     }
