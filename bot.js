@@ -236,9 +236,9 @@ function generateDescriptionText(card) {
 }
 
 function renderEmojis(text) {
-    return text.replace(/:(.*?):/g, match => {
+    return text.replace(/{[^}]+?}/ig, match => {
         const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
-        return manamojis[code] ? '<:'+manamojis[code]+'>':'';
+        return '<:'+manamojis[code]+'>';
     });
 }
 
