@@ -1,5 +1,5 @@
-var Discord = require('discord.js');
-var fs = require("fs");
+const discord = require('discord.js');
+const fs = require("fs");
 
 //Constants
 WATCHEDSETCODESDIRECTORY = __dirname + '/data';
@@ -7,9 +7,83 @@ WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
-// Initialize Discord Bot
+var manamojis = {
+    "0":"0_:344491158384410625",
+    "1":"1_:344491158723887107",
+    "10":"10:344491160280104984",
+    "11":"11:344491159965401088",
+    "12":"12:344491160435163137",
+    "13":"13:344491160674238464",
+    "14":"14:344491160619712513",
+    "15":"15:344491160586289154",
+    "16":"16:344491160808587264",
+    "17":"17:344491160468979714",
+    "18":"18:344491160720506880",
+    "19":"19:344491160498208771",
+    "2":"2_:344491158371696641",
+    "20":"20:344491161257246720",
+    "2b":"2b:344491158665429012",
+    "2g":"2g:344491159189585921",
+    "2r":"2r:344491159265083392",
+    "2u":"2u:344491159160225792",
+    "2w":"2w:344491159692771328",
+    "3":"3_:344491159210688522",
+    "4":"4_:344491159172677632",
+    "5":"5_:344491158883532801",
+    "6":"6_:344491159185260554",
+    "7":"7_:344491159021813761",
+    "8":"8_:344491159424466945",
+    "9":"9_:344491159273472020",
+    "b":"b_:608749298682822692",
+    "bg":"bg:344491161286737921",
+    "bp":"bp:608749299135807508",
+    "br":"br:344491161362366465",
+    "c":"c_:344491160636489739",
+    "chaos":"chaos:344491160267653130",
+    "e":"e_:344491160829558794",
+    "g":"g_:344491161169428481",
+    "gp":"gp:344491161102319616",
+    "gu":"gu:344491161223692300",
+    "gw":"gw:344491161139937282",
+    "half":"half:344491161164972032",
+    "hr":"hr:344491160787615748",
+    "hw":"hw:344491161181749268",
+    "infinity":"infinity:344491160619843593",
+    "q":"q_:344491161060245504",
+    "r":"r_:344491161274023938",
+    "rg":"rg:344491161295257600",
+    "rp":"rp:344491161076891648",
+    "rw":"rw:344491161316098049",
+    "s":"s_:343519207608025090",
+    "t":"t_:344491161089736704",
+    "u":"u_:344491161362235394",
+    "ub":"ub:344491161248858113",
+    "up":"up:344491161395789824",
+    "ur":"ur:608749298896863297",
+    "w":"w_:608749298896863266",
+    "wb":"wb:344491161374818304",
+    "wp":"wp:608749298544410641",
+    "wu":"wu:608749299135807512",
+    "x":"x_:344491161345327126",
+    "y":"y_:344491161374818305",
+    "z":"z_:344491161035210755"
+};
+
+var colors = {
+    "W": 0xF8F6D8,
+    "U": 0xC1D7E9,
+    "B": 0x0D0F0F,
+    "R": 0xE49977,
+    "G": 0xA3C095,
+    "GOLD": 0xE0C96C,
+    "ARTIFACT": 0x90ADBB,
+    "LAND": 0xAA8F84,
+    "NONE": 0xDAD9DE
+};
+
+// Initialize discord Bot
 Log('Initializing bot...');
-var bot = new Discord.Client();
+var bot = new discord.Client();
 
 //When bot is ready
 bot.on('ready', function (evt) {
@@ -113,7 +187,106 @@ bot.on('disconnect', function(errMsg, code) {
         bot.connect();
     }
 });
+     
+function generateDescriptionText(card) {
+    const ptToString = (card) =>
+        '**'+card.power.replace(/\*/g, '\\*') + "/" + card.toughness.replace(/\*/g, '\\*')+'**';
 
+    const description = [];
+    if (card.type_line) { // bold type line
+        let type = `**${card.printed_type_line || card.type_line}** `;
+        type += `(${card.set.toUpperCase()} ${_.capitalize(card.rarity)}`;
+        type += `${card.lang && card.lang !== 'en' ? ' :flag_' + card.lang + ':':''})`;
+        description.push(type);
+    }
+    if (card.oracle_text) { // reminder text in italics
+        const text = card.printed_text || card.oracle_text;
+        description.push(text.replace(/[()]/g, m => m === '(' ? '*(':')*'));
+    }
+    if (card.flavor_text) { // flavor text in italics
+        description.push('*' + card.flavor_text+'*');
+    }
+    if (card.loyalty) { // bold loyalty
+        description.push('**Loyalty: ' + card.loyalty+'**');
+    }
+    if (card.power) { // bold P/T
+        description.push(ptToString(card));
+    }
+    if (card.card_faces) {
+        // split cards are special
+        card.card_faces.forEach(face => {
+            description.push('**'+face.type_line+'**');
+            if (face.oracle_text) {
+                description.push(face.oracle_text.replace(/[()]/g, m => m === '(' ? '*(':')*'));
+            }
+            if (face.power) {
+                description.push(ptToString(face));
+            }
+            description.push('');
+        });
+    }
+    return description.join('\n');
+}
+
+function renderEmojis(text) {
+    return text.replace(/{[^}]+?}/ig, match => {
+        const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
+        return manamojis[code] ? '<:'+manamojis[code]+'>':'';
+    });
+}
+
+function getBorderColor(card) {
+    let color;
+    if (!card.colors || card.colors.length === 0) {
+        color = colors.NONE;
+        if (card.type_line && card.type_line.match(/artifact/i)) color = colors.ARTIFACT;
+        if (card.type_line && card.type_line.match(/land/i)) color = colors.LAND;
+    } else if (card.colors.length > 1) {
+        color = colors.GOLD;
+    } else {
+        color = colors[card.colors[0]];
+    }
+    return color;
+}
+
+function generateEmbed(card, hasEmojiPermission) {
+    // generate embed title and description text
+    // use printed name (=translated) over English name, if available
+    let title = card.name;
+
+    if (card.mana_cost) {
+        title += ' ' + card.mana_cost;
+    }
+
+    // DFC use card_faces array for each face
+    if (card.layout === 'transform' && card.card_faces) {
+        if (card.card_faces[0].mana_cost) {
+            title += ' ' + card.card_faces[0].mana_cost;
+        }
+        card.image_uris = card.card_faces[0].image_uris;
+    }
+
+    let description = generateDescriptionText(card);
+
+    // are we allowed to use custom emojis? cool, then do so, but make sure the title still fits
+    if(hasEmojiPermission) {
+        title = _.truncate(renderEmojis(title), {length: 256, separator: '<'});
+        description = renderEmojis(description);
+    }
+
+    // instantiate embed object
+    const embed = new discord.MessageEmbed({
+        title,
+        description,
+        footer: {text: footer},
+        url: card.scryfall_uri,
+        color: getBorderColor(card.layout === 'transform' ? card.card_faces[0]:card),
+        thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
+        image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
+    });
+    return embed;
+}
+        
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
 function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
@@ -198,27 +371,12 @@ function getAllCards(set, channelID, verbose = false) {
                         else {
                             // Get all relevant data from the card
                             let card = cards.pop();
-                            cardName = card.name;
-                            Log('Sending ' + cardName + ' to channel.');
-                            cardImageUrl = card.image_uris.normal;
-                            cardText = card.oracle_text;
-                            cardCost = card.mana_cost.replace(new RegExp('[{}]','g'), '');
-                            cardType = card.type_line;
-                            cardRarity = card.rarity;
-                            cardFlavourText = card.flavor_text;
-
-                            // Construct the discord message
-                            var message = '**' + cardName + '** - ' + cardCost + '\n' 
-                            + cardType + ' (' + cardRarity + ')\n' 
-                            + cardText + '\n';
-                            if (cardFlavourText != undefined) {
-                                message = message + '_' + cardFlavourText + '_\n';
-                            }
-                            message = message + cardImageUrl;
+                            var embed = generateEmbed(card, true);
+                            Log('Sending ' + card.name + ' to channel.');
 
                             intervals.push({interval: interval, setcode: set, channel: channelID});
 
-                            channelID.send(message);
+                            channelID.send('', {embed});
                         }
                     }, 1000, newCardlist);
 
