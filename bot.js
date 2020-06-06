@@ -10,7 +10,7 @@ SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
 var manamojis = {
     "0":"0_:344491158384410625",
-    "1":"nicktatorship:533134948417142814",
+    "1":"1_:344491158723887107",
     "10":"10:344491160280104984",
     "11":"11:344491159965401088",
     "12":"12:344491160435163137",
@@ -377,7 +377,7 @@ function getAllCards(set, channelID, verbose = false) {
                         else {
                             // Get all relevant data from the card
                             let card = cards.pop();
-                            var embed = generateEmbed(card, true);
+                            var embed = generateEmbed(card, false);
                             Log('Sending ' + card.name + ' to channel.');
 
                             intervals.push({interval: interval, setcode: set, channel: channelID});
