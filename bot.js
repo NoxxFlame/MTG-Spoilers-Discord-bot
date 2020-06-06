@@ -285,7 +285,6 @@ function generateEmbed(card, hasEmojiPermission) {
     const embed = new discord.MessageEmbed({
         title,
         description,
-        footer: {text: footer},
         url: card.scryfall_uri,
         color: getBorderColor(card.layout === 'transform' ? card.card_faces[0]:card),
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
