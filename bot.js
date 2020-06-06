@@ -235,10 +235,10 @@ function generateDescriptionText(card) {
     return description.join('\n');
 }
 
-function renderEmojis(text) {
+renderEmojis(text) {
     return text.replace(/{[^}]+?}/ig, match => {
         const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
-        return bot.emojis.get(manamojis[code]).toString();
+        return this.manamojis[code] ? '<:'+this.manamojis[code]+'>':'';
     });
 }
 
