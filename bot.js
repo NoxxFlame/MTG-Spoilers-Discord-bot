@@ -371,5 +371,5 @@ function Log(message) {
 try {
     bot.login(process.env.DISCORD_TOKEN);
 } catch(err) {
-    log.error(err);
+    Log(err);
 }
