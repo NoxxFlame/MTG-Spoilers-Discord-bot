@@ -22,12 +22,12 @@ bot.on('ready', function (evt) {
 });
 
 //When bot reads message
-bot.on('message', function (user, userID, channelID, message, evt) {
+bot.on('message', async message => {
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
+    if (message.content.substring(0, 1) == '!') {
         try {
-            var args = message.substring(1).split(' ');
+            var args = message.content.substring(1).split(' ');
             var cmd = args[0];
         
             args = args.splice(1);
@@ -37,44 +37,37 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                 case 'getallCards':
                 case 'getallcards':
                 case 'getall':
-                    getAllCards(set, channelID, true);
+                    getAllCards(set, message.channel, true);
                 break;
                 //Start spoilerwatch for the given set ID in the current channel
                 case 'watch':
                 case 'startwatch':
                     //Add the combination to the watched sets and save this
-                    watchedSetcodes.push({"setCode":set, "channelID":channelID});
+                    watchedSetcodes.push({"setCode":set, "channelID":message.channel});
                     saveWatchedSets()
                     Log('Starting spoilerwatch for set ' + set + '.');
-                    bot.sendMessage({
-                        to: channelID,
-                        message: 'Starting spoilerwatch for set ' + set + '.',
-                    });
-
+                    bot.sendMessage(message.channel, 'Starting spoilerwatch for set ' + set + '.');
                     //Immediately look for new cards
                     Log('Start looking for new cards on ' + Date.now());
-                    getAllCards(set, channelID);
+                    getAllCards(set, message.channel);
                     //Start the interval to look for new cards
-                    startSpoilerWatch(set, channelID);
+                    startSpoilerWatch(set, message.channel);
                 break;
                 //Stop spoilerwatch for the given set ID in the current channel
                 case 'unwatch':
                 case 'stopwatch':
                     Log('checking spoilerwatch for set ' + set + '.');
-                    Log('Checking if set matches with ' + set + ' and channel matches with ' + channelID);
+                    Log('Checking if set matches with ' + set + ' and channel matches with ' + message.channel);
                     // Check if set is watched in the current channel
                     if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
-                        watchedset.setCode == set && watchedset.channelID == channelID
+                        watchedset.setCode == set && watchedset.channelID == message.channel
                     })) 
                     {
                         Log('Stopping spoilerwatch for set ' + set + '.');
-                        bot.sendMessage({
-                            to: channelID,
-                            message: 'Stopping spoilerwatch for set ' + set + '.',
-                        });
+                        bot.sendMessage(message.channel, 'Stopping spoilerwatch for set ' + set + '.');
                         // Find the timeout for this set and channel
                         intervals.find((o, i) => {
-                            if (o.setcode == set && o.channel == channelID) {
+                            if (o.setcode == set && o.channel == message.channel) {
                                 // Stop the interval that checks for spoilers
                                 clearInterval(o.interval);
                                 intervals.splice(i, 1);
@@ -83,29 +76,23 @@ bot.on('message', function (user, userID, channelID, message, evt) {
                         });
                         // Remove the set and channel combination from the watchedSetcodes and save it
                         watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
-                            watchedset.setCode != set || watchedset.channelID != channelID
+                            watchedset.setCode != set || watchedset.channelID != message.channel
                         });
                         saveWatchedSets()
                     }
                 break;
                 // Clears the saved data for the given set in the current channel
                 case 'clear':
-                    let fileName = getFilename(set, channelID);
+                    let fileName = getFilename(set, message.channel);
                     try {
                         fs.writeFile(fileName, "[]", (err) => {
                             if (err) Log('ERROR: ' + err);
                             Log("Successfully cleared file " + fileName + ".");
                         });
-                        bot.sendMessage({
-                            to: channelID,
-                            message: "Successfully cleared file for set with code " + set + ".",
-                        });
+                        bot.sendMessage(message.channel, "Successfully cleared file for set with code " + set + ".");
                     }
                     catch(error) {
-                        bot.sendMessage({
-                            to: channelID,
-                            message: "Something went wrong with clearing file for set with code " + set + ".",
-                        });
+                        bot.sendMessage(message.channel, "Something went wrong with clearing file for set with code " + set + ".");
                         Log("Something went wrong with clearing file for set with code " + set + ".");
                         Log('ERROR: ' + error);
                     }
@@ -114,10 +101,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
         }
         catch (error) {
             Log('UNCAUGHT ERROR: ' + error)
-            bot.sendMessage({
-                to: channelID,
-                message: "Something went really wrong. Please tell Lars he's an idiot.",
-            });
+            bot.sendMessage(message.channel, "Something went really wrong. Please tell Lars he's an idiot.");
         }
      }
 });
@@ -160,10 +144,7 @@ function getAllCards(set, channelID, verbose = false) {
         }
 
         if (verbose) {
-            bot.sendMessage({
-                to: channelID,
-                message: 'Trying to get newly spoiled cards from set with code ' + set + '...',
-            });
+            bot.sendMessage(channelID, 'Trying to get newly spoiled cards from set with code ' + set + '...');
         }
 
         // Make a request to the Scryfall api
@@ -203,10 +184,7 @@ function getAllCards(set, channelID, verbose = false) {
                 if (newCardlist.length <= 0) {
                     Log('No new cards were found with set code ' + set);
                     if (verbose) {
-                        bot.sendMessage({
-                            to: channelID,
-                            message: 'No new cards were found with set code ' + set + '.',
-                        });
+                        bot.sendMessage(channelID, 'No new cards were found with set code ' + set + '.');
                     }
                 }
                 else {
@@ -240,10 +218,7 @@ function getAllCards(set, channelID, verbose = false) {
 
                             intervals.push({interval: interval, setcode: set, channel: channelID});
 
-                            bot.sendMessage({
-                                to: channelID,
-                                message: message,
-                            });
+                            bot.sendMessage(channelID, message);
                         }
                     }, 1000, newCardlist);
 
@@ -264,21 +239,14 @@ function getAllCards(set, channelID, verbose = false) {
             }
             else {
                 if (verbose) {
-                    bot.sendMessage({
-                        to: channelID,
-                        message: 'Did not find any card with set code ' + set + '.',
-                    });
+                    bot.sendMessage(channelID, 'Did not find any card with set code ' + set + '.');
                 }
             }
         });
 
         }).on("error", (err) => {
             Log("Error: " + err.message);
-            bot.sendMessage({
-                to: channelID,
-                message: 'Error trying to get cards with set code ' + set + './n'  +
-                'Check the console for more details.',
-            });
+            bot.sendMessage(channelID, 'Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
         });
     });
 }
