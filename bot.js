@@ -336,6 +336,7 @@ function writeToAWS(filename, data) {
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
     return s3.upload(params, options, function(err, data) {
         if (err) Log(err);
+        else Log(data);
     });
 }
 
