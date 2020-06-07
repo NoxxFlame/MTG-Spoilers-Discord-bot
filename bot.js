@@ -332,11 +332,11 @@ function writeToAWS(filename, data) {
 }
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
-function getAllCards(set, channelID, verbose = false) {
+async function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    let ret = readFromAWS(fileName);
+    let ret = await readFromAWS(fileName);
     if (ret == false) {
         Log("Cannot find file " + fileName + ".");
         writeToAWS(fileName, "[]");
@@ -460,8 +460,8 @@ function saveWatchedSets() {
 }
 
 // Reads the array of watched sets and channel IDs from the data file
-function readWatchedSets() {
-    let ret = readFromAWS(WATCHEDSETCODESPATH);
+async function readWatchedSets() {
+    let ret = await readFromAWS(WATCHEDSETCODESPATH);
     if (ret == false) {
         watchedSetcodes = [];
     } else {
