@@ -4,7 +4,7 @@ const fs = require("fs");
 const _ = require("lodash");
 
 //Constants
-WATCHEDSETCODESDIRECTORY = '/data';
+WATCHEDSETCODESDIRECTORY = 'data';
 WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
@@ -452,7 +452,7 @@ function getAllCards(set, channelID, verbose = false) {
 
 // Returns the data filename for the given set and channelID
 function getFilename(set, channelID) {
-    return __dirname + '/data/' + channelID + '-' + set + '-data.json';
+    return 'data/' + channelID + '-' + set + '-data.json';
 }
 
 // Saves the array of watched sets and channel IDs to the data file
