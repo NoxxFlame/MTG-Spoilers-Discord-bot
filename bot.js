@@ -305,6 +305,7 @@ function AWSFileExists(filename) {
     };
     s3.headObject(params, function (err, metadata) {  
         if (err && err.code === 'NotFound') {  
+            Log(err);
             return false;
         } else {  
             return true;
@@ -320,6 +321,7 @@ function readFromAWS(filename) {
     s3.getObject(params, function(err, data) {
         if (err) {
             Log("ERROR: Could not find file " + filename);
+            Log(err);
             return false;
         } else {
             return data.Body;
@@ -336,7 +338,6 @@ function writeToAWS(filename, data) {
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
     return s3.upload(params, options, function(err, data) {
         if (err) Log(err);
-        else Log(data);
     });
 }
 
