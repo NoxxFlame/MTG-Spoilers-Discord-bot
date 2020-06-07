@@ -303,20 +303,18 @@ function readFromAWS(filename) {
         Bucket: bucketname, 
         Key: filename
     };
-    var ret;
-    s3.getObject(params, function(err, data) {
-        if (err && err.code === 'NotFound') {
+    return s3.getObject(params, function(err, data) {
+        if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
-            ret = false;
+            return false;
         } else if (err) {
             Log("ERROR: Unknown error when trying to find " + filename);
             Log(err);
-            ret = false;
+            return false;
         } else {
-            ret = data.Body;
+            return data.Body;
         }
     });
-    return ret;
 }
 
 function writeToAWS(filename, data) {
