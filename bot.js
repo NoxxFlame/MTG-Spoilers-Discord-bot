@@ -463,7 +463,7 @@ function readWatchedSets() {
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
             startSpoilerWatches()
         }
-    };
+    });
     return watchedSetcodes;
 }
 
