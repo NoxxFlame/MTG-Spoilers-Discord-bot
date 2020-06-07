@@ -309,6 +309,10 @@ function readFromAWS(filename) {
             console.log("ERROR: Could not find file " + filename);
             return false;
         } else {
+            console.log(data);
+            console.log(data.Body);
+            console.log(Buffer.from(data.Body).toString());
+            console.log(JSON.parse(Buffer.from(data.Body).toString()));
             return data.Body;
         }
     });
@@ -322,7 +326,7 @@ function writeToAWS(filename, data) {
     };
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
     return s3.upload(params, options, function(err, data) {
-        console.log(err, data);
+        if (err) console.log(err);
     });
 }
 
