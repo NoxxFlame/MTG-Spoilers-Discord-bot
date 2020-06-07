@@ -9,7 +9,7 @@ WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
-const s3 = new AWS.S3({
+const s3 = new aws.S3({
     accessKeyId: process.env.AWS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_KEY
 });
