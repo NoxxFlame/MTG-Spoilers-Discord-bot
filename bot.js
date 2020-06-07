@@ -333,12 +333,12 @@ function getAllCards(set, channelID, verbose = false) {
     let savedCardlist = JSON.parse("[]");
     if (!readFromAWS(fileName)) {
         // If data file doesn't exist yet, make an empty one
+        console.log("AHHHHHHHHHHHHHHH");
         writeToAWS(fileName, "[]");
     } else {
         try {
             var body = readFromAWS(fileName)
             savedCardlist = JSON.parse(Buffer.from(body).toString());
-            console.log(savedCardlist);
             Log("Successfully read file " + fileName + ".");
         }
         catch(error) {
