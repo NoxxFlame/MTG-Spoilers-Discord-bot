@@ -308,6 +308,7 @@ function AWSFileExists(filename) {
             Log(err);
             return false;
         } else {  
+            Log("something real strange is happening");
             return true;
         }
     });
@@ -346,7 +347,7 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    if (!AWSFileExists(fileName)) {
+    if (AWSFileExists(fileName) == false) {
         Log("Cannot find file " + fileName + ".");
         writeToAWS(fileName, "[]");
     } else {
