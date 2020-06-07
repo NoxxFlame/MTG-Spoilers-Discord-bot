@@ -334,6 +334,7 @@ function getAllCards(set, channelID, verbose = false) {
     if (!readFromAWS(fileName)) {
         // If data file doesn't exist yet, make an empty one
         writeToAWS(fileName, "[]");
+        console.log("something is wrong");
     } else {
         try {
             var body = readFromAWS(fileName).Body
