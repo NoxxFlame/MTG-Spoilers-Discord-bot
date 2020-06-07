@@ -332,26 +332,33 @@ function writeToAWS(filename, data) {
 }
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
-function getAllCards(set, channelID, verbose = false) {
+async function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    readFromAWS(fileName, function(ret) {
+    const result = await readFromAWS(fileName, function(ret) {
         if (ret == false) {
             Log("Cannot find file " + fileName + ".");
             writeToAWS(fileName, "[]");
+            return false;
         } else {
             try {
                 savedCardlist = JSON.parse(Buffer.from(ret).toString());
                 Log("Successfully read file " + fileName + ".");
+                return savedCardlist;
             }
             catch(error) {
                 Log("Something went wrong with parsing data from existing saved file.");
                 Log('ERROR: ' + error);
-                return;
+                return false;
             }
         }
     });
+    if (result) {
+        savedCardlist = result;
+    } else {
+        return;
+    }
 
     if (verbose) {
         channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
