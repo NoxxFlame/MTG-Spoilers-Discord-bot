@@ -174,10 +174,8 @@ bot.on('message', async message => {
                 case 'clear':
                     let fileName = getFilename(set, message.channel);
                     try {
-                        fs.writeFile(fileName, "[]", (err) => {
-                            if (err) Log('ERROR: ' + err);
-                            Log("Successfully cleared file " + fileName + ".");
-                        });
+                        writeToAWS(fileName, "[]");
+                        Log("Successfully cleared file " + fileName + ".");
                         message.channel.send("Successfully cleared file for set with code " + set + ".");
                     }
                     catch(error) {
@@ -416,10 +414,7 @@ function getAllCards(set, channelID, verbose = false) {
                 try {
                     // Save the updated list of saved cards to the datafile
                     let savedCardlistJSON = JSON.stringify(savedCardlist);
-                    fs.writeFile(fileName, savedCardlistJSON, function(err) {
-                        if (err) Log("ERROR: " + err);
-                        Log('New card list has succesfully been saved!');
-                    });
+                    writeToAWS(fileName, savedCardlistJSON);
                 }
                 catch(error) {
                     Log("Something went wrong with saving new data.");
@@ -448,30 +443,19 @@ function getFilename(set, channelID) {
 
 // Saves the array of watched sets and channel IDs to the data file
 function saveWatchedSets() {
-    fs.writeFile(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes), (err) => {
-        if (err) Log('ERROR: ' + err);
-        Log("Successfully written to file " + WATCHEDSETCODESPATH + ".");
-    });
+    writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
 }
 
 // Reads the array of watched sets and channel IDs from the data file
 function readWatchedSets() {
-    if (!fs.existsSync(WATCHEDSETCODESDIRECTORY)) {
-        fs.mkdirSync(WATCHEDSETCODESDIRECTORY);
-    }
-    if (!fs.existsSync(WATCHEDSETCODESPATH)) {
-        fs.writeFile(WATCHEDSETCODESPATH, '[]', function (err) {
-            if (err) {
-                Log('ERROR: ' + err);
-            }
-        });
-    }
-    fs.readFile(WATCHEDSETCODESPATH, function(err, buf) {
-        if (err) Log('ERROR: ' + err);
-        watchedSetcodes = JSON.parse(buf);
+    if (!readFromAWS(WATCHEDSETCODESPATH)) {
+        Log("Could not read file " + WATCHEDSETCODESPATH + ".");
+    } else {
+        var body = readFromAWS(WATCHEDSETCODESPATH).Body;
+        watchedSetcodes = JSON.parse(body);
         Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         startSpoilerWatches()
-    });
+    }
     return;
 }
 
