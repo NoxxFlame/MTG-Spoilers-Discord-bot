@@ -2,6 +2,7 @@ const discord = require('discord.js');
 const aws = require('aws-sdk');
 const fs = require("fs");
 const _ = require("lodash");
+const util = require('util');
 
 //Constants
 WATCHEDSETCODESDIRECTORY = 'data';
@@ -303,7 +304,8 @@ async function readFromAWS(filename) {
         Bucket: bucketname, 
         Key: filename
     };
-    const result = await s3.getObject(params, function(err, data) {
+    const promGetObject = util.promisify(s3.getObject);
+    const result = await promGetObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
             return false;
