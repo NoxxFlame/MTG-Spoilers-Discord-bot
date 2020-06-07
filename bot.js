@@ -354,6 +354,7 @@ async function getAllCards(set, channelID, verbose = false) {
             }
         }
     });
+    Log(result);
     if (result) {
         savedCardlist = result;
     } else {
