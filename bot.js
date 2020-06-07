@@ -337,6 +337,7 @@ function getAllCards(set, channelID, verbose = false) {
     } else {
         try {
             var body = readFromAWS(fileName).Body
+            console.log(body)
             savedCardlist = JSON.parse(body);
             Log("Successfully read file " + fileName + ".");
         }
