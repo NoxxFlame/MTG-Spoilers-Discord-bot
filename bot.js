@@ -307,8 +307,10 @@ function readFromAWS(filename) {
     s3.getObject(params, function(err, data) {
         if (err) {
             console.log(err, err.stack);
+            console.log("big error");
             return false;
         } else {
+            console.log(data);
             return data;
         }
     });
