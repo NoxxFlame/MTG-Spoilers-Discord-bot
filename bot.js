@@ -468,22 +468,21 @@ async function readWatchedSets() {
         } else {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
-            startSpoilerWatches()
         }
         return watchedSetcodes;
     });
+    startSpoilerWatches()
     return result;
 }
 
 // Start the spoiler watch intervals for all combinations in the saved file
 function startSpoilerWatches() {
-    Log('Watched sets: ' + JSON.stringify(watchedSetcodes));
     for (var i = 0; i < watchedSetcodes.length; i++) {
         var watchedSet = watchedSetcodes[i];
-        Log('Watched set: ' + JSON.stringify(watchedSet));
-        Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID);
-        startSpoilerWatch(watchedSet.setCode, watchedSet.channelID);
-        getAllCards(watchedSet.setCode, watchedSet.channelID);
+        Log('Watched set: ' + watchedSet.setCode + ' on channel' + watchedSet.channelID.name);
+        Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID.id);
+        startSpoilerWatch(watchedSet.setCode, watchedSet.channelID.id);
+        getAllCards(watchedSet.setCode, watchedSet.channelID.id);
     }
     return;
 }
