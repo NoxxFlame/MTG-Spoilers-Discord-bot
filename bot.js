@@ -467,7 +467,7 @@ async function readWatchedSets() {
             watchedSetcodes = [];
         } else {
             var body = readFromAWS(WATCHEDSETCODESPATH);
-            watchedSetcodes = JSON.parse(Buffer.from(body).toString());
+            watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
             startSpoilerWatches()
         }
