@@ -304,8 +304,7 @@ async function readFromAWS(filename) {
         Bucket: bucketname, 
         Key: filename
     };
-    const promGetObject = util.promisify(s3.getObject);
-    const result = await promGetObject(params, function(err, data) {
+    const result = await s3.getObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
             return false;
@@ -317,6 +316,7 @@ async function readFromAWS(filename) {
             return data.Body;
         }
     });
+    return result;
 }
 
 function writeToAWS(filename, data) {
