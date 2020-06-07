@@ -333,7 +333,7 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    if (!readFromAWS(filename)) {
+    if (!readFromAWS(fileName)) {
         // If data file doesn't exist yet, make an empty one
         writeToAWS(fileName, "[]");
     } else {
