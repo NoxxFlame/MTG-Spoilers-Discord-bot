@@ -297,6 +297,20 @@ function generateEmbed(card, hasEmojiPermission) {
     });
     return embed;
 }
+      
+function AWSFileExists(filename) {
+    var params = {
+        Bucket: bucketname, 
+        Key: filename
+    };
+    s3.headObject(params, function (err, metadata) {  
+        if (err && err.code === 'NotFound') {  
+            return false;
+        } else {  
+            return true;
+        }
+    });
+}
     
 function readFromAWS(filename) {
     var params = {
@@ -330,15 +344,20 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    try {
-        var body = readFromAWS(fileName)
-        savedCardlist = JSON.parse(Buffer.from(body).toString()) || [];
-        Log("Successfully read file " + fileName + ".");
-    }
-    catch(error) {
-        Log("Something went wrong with parsing data from existing saved file.");
-        Log('ERROR: ' + error);
-        return;
+    if (!AWSFileExists(fileName)) {
+        Log("Cannot find file " + fileName + ".");
+        writeToAWS(fileName, "[]");
+    } else {
+        try {
+            var body = readFromAWS(fileName)
+            savedCardlist = JSON.parse(Buffer.from(body).toString());
+            Log("Successfully read file " + fileName + ".");
+        }
+        catch(error) {
+            Log("Something went wrong with parsing data from existing saved file.");
+            Log('ERROR: ' + error);
+            return;
+        }
     }
 
     if (verbose) {
@@ -442,10 +461,14 @@ function saveWatchedSets() {
 
 // Reads the array of watched sets and channel IDs from the data file
 function readWatchedSets() {
-    var body = readFromAWS(WATCHEDSETCODESPATH);
-    watchedSetcodes = JSON.parse(Buffer.from(body).toString()) || [];
-    Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
-    startSpoilerWatches()
+    if (!AWSFileExists(WATCHEDSETCODESPATH)) {
+        watchedSetcodes = [];
+    } else {
+        var body = readFromAWS(WATCHEDSETCODESPATH);
+        watchedSetcodes = JSON.parse(Buffer.from(body).toString());
+        Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+        startSpoilerWatches()
+    }
     return watchedSetcodes;
 }
 
