@@ -4,7 +4,7 @@ const fs = require("fs");
 const _ = require("lodash");
 
 //Constants
-WATCHEDSETCODESDIRECTORY = __dirname + '/data';
+WATCHEDSETCODESDIRECTORY = '/data';
 WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
@@ -97,7 +97,6 @@ var bot = new discord.Client();
 //When bot is ready
 bot.on('ready', function (evt) {
     Log('Connected!');
-    Log('Logged in as: ' + bot.username + ' - (' + bot.id + ')');
     bot.user.setPresence({
         activity: {
             name: 'for MTG spoilers',
@@ -346,7 +345,7 @@ function getAllCards(set, channelID, verbose = false) {
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
     if (!AWSFileExists(fileName)) {
-        Log("Cannot find file " + filename + ".");
+        Log("Cannot find file " + fileName + ".");
         writeToAWS(fileName, "[]");
     } else {
         try {
