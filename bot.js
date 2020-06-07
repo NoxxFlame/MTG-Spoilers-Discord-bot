@@ -338,7 +338,7 @@ function getAllCards(set, channelID, verbose = false) {
     } else {
         try {
             var body = readFromAWS(fileName)
-            savedCardlist = JSON.parse(body);
+            savedCardlist = JSON.parse(Buffer.from(body).toString());
             Log("Successfully read file " + fileName + ".");
         }
         catch(error) {
@@ -453,7 +453,7 @@ function readWatchedSets() {
         Log("Could not read file " + WATCHEDSETCODESPATH + ".");
     } else {
         var body = readFromAWS(WATCHEDSETCODESPATH);
-        watchedSetcodes = JSON.parse(body);
+        watchedSetcodes = JSON.parse(Buffer.from(body).toString());
         Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         startSpoilerWatches()
     }
