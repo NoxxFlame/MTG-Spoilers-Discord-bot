@@ -309,10 +309,6 @@ function readFromAWS(filename) {
             console.log("ERROR: Could not find file " + filename);
             return false;
         } else {
-            console.log(data);
-            console.log(data.Body);
-            console.log(Buffer.from(data.Body).toString());
-            console.log(JSON.parse(Buffer.from(data.Body).toString()));
             return data.Body;
         }
     });
@@ -338,11 +334,11 @@ function getAllCards(set, channelID, verbose = false) {
     if (!readFromAWS(fileName)) {
         // If data file doesn't exist yet, make an empty one
         writeToAWS(fileName, "[]");
-        console.log("something is wrong");
     } else {
         try {
             var body = readFromAWS(fileName)
             savedCardlist = JSON.parse(Buffer.from(body).toString());
+            console.log(savedCardlist);
             Log("Successfully read file " + fileName + ".");
         }
         catch(error) {
@@ -454,14 +450,14 @@ function saveWatchedSets() {
 // Reads the array of watched sets and channel IDs from the data file
 function readWatchedSets() {
     if (!readFromAWS(WATCHEDSETCODESPATH)) {
-        Log("Could not read file " + WATCHEDSETCODESPATH + ".");
+        watchedSetcodes = [];
     } else {
         var body = readFromAWS(WATCHEDSETCODESPATH);
         watchedSetcodes = JSON.parse(Buffer.from(body).toString());
         Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         startSpoilerWatches()
     }
-    return;
+    return watchedSetcodes;
 }
 
 // Start the spoiler watch intervals for all combinations in the saved file
