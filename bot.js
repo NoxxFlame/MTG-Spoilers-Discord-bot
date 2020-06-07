@@ -299,6 +299,20 @@ function generateEmbed(card, hasEmojiPermission) {
     return embed;
 }
       
+function AWSFileExists(filename) {
+    var params = {
+        Bucket: bucketname, 
+        Key: filename
+    };
+    s3.headObject(params, function (err, metadata) {  
+        if (err && err.code === 'NotFound') {  
+            return false;
+        } else {  
+            return true;
+        }
+    });
+}
+    
 function readFromAWS(filename) {
     var params = {
         Bucket: bucketname, 
@@ -306,7 +320,7 @@ function readFromAWS(filename) {
     };
     s3.getObject(params, function(err, data) {
         if (err) {
-            console.log("ERROR: Could not find file " + filename);
+            Log("ERROR: Could not find file " + filename);
             return false;
         } else {
             return data.Body;
@@ -322,7 +336,7 @@ function writeToAWS(filename, data) {
     };
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
     return s3.upload(params, options, function(err, data) {
-        if (err) console.log(err);
+        if (err) Log(err);
     });
 }
 
@@ -331,9 +345,8 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    if (!readFromAWS(fileName)) {
-        // If data file doesn't exist yet, make an empty one
-        console.log("AHHHHHHHHHHHHHHH");
+    if (!AWSFileExists(fileName)) {
+        Log("Cannot find file " + filename + ".");
         writeToAWS(fileName, "[]");
     } else {
         try {
@@ -449,7 +462,7 @@ function saveWatchedSets() {
 
 // Reads the array of watched sets and channel IDs from the data file
 function readWatchedSets() {
-    if (!readFromAWS(WATCHEDSETCODESPATH)) {
+    if (!AWSFileExists(WATCHEDSETCODESPATH)) {
         watchedSetcodes = [];
     } else {
         var body = readFromAWS(WATCHEDSETCODESPATH);
