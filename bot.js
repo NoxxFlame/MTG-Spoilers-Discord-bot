@@ -1,4 +1,5 @@
 const discord = require('discord.js');
+const aws = require('aws-sdk');
 const fs = require("fs");
 const _ = require("lodash");
 
@@ -8,7 +9,14 @@ WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
 
-var manamojis = {
+const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_KEY
+});
+
+const bucketname = process.env.AWS_BUCKET_NAME
+
+const manamojis = {
     "0":"0_:344491158384410625",
     "1":"1_:344491158723887107",
     "10":"10:344491160280104984",
@@ -70,7 +78,7 @@ var manamojis = {
     "z":"z_:344491161035210755"
 };
 
-var colors = {
+const colors = {
     "W": 0xF8F6D8,
     "U": 0xC1D7E9,
     "B": 0x0D0F0F,
@@ -292,126 +300,144 @@ function generateEmbed(card, hasEmojiPermission) {
     });
     return embed;
 }
-        
+      
+function readFromAWS(filename) {
+    var params = {
+        Bucket: bucketname, 
+        Key: filename
+    };
+    s3.getObject(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack);
+            return false;
+        } else {
+            return data;
+        }
+    });
+}
+
+function writeToAWS(filename, data) {
+    var params = {
+        Bucket: bucketname, 
+        Key: filename,
+        Body: file
+    };
+    var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
+    return s3.upload(params, options, function(err, data) {
+        console.log(err, data);
+    });
+}
+
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
 function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    fs.exists(fileName, (exists) => {
-        if (!exists) {
-            // If data file doesn't exist yet, make an empty one
-            fs.writeFile(fileName, "[]", (err) => {
-                if (err) Log('ERROR: ' + err);
-                Log("Successfully written to file " + fileName + ".");
-            });
+    if (!readFromAWS(filename)) {
+        // If data file doesn't exist yet, make an empty one
+        writeToAWS(fileName, "[]");
+    } else {
+        try {
+            var body = readFromAWS(fileName).Body
+            savedCardlist = JSON.parse(body);
+            Log("Successfully read file " + fileName + ".");
         }
-        else {
-            // If data file does exist, try to read it
-            try {
-                fs.readFile(fileName, function(err, buf) {
-                    if (err) Log("ERROR: " + err);
-                    savedCardlist = JSON.parse(buf);
-                    Log("Successfully read file " + fileName + ".");
-                });
-            }
-            catch(error) {
-                Log("Something went wrong with parsing data from existing saved file.");
-                Log('ERROR: ' + error);
-                return;
-            }
+        catch(error) {
+            Log("Something went wrong with parsing data from existing saved file.");
+            Log('ERROR: ' + error);
+            return;
         }
+    }
 
-        if (verbose) {
-            channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
+    if (verbose) {
+        channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
+    }
+
+    // Make a request to the Scryfall api
+    const https = require('https');
+    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
+    let data = '';
+
+    // A chunk of data has been received.
+    resp.on('data', (chunk) => {
+        data += chunk;
+    });
+
+    // The whole response has been received.
+    resp.on('end', () => {
+        try {
+            // Parse the data in the response
+            cardlist = JSON.parse(data);
         }
+        catch(error) {
+            Log("Something went wrong with parsing data from Scryfall.");
+            Log('ERROR:' + error);
+            return;
+        }
+        var newCardlist = [];
+        if (cardlist.object == 'list' && cardlist.total_cards > 0) {
+            // For every card: check if it's already save, otherwise at it to the new list
+            cardlist.data.forEach(function(card) {
+                cardId = card.oracle_id;
 
-        // Make a request to the Scryfall api
-        const https = require('https');
-        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
-        let data = '';
-
-        // A chunk of data has been received.
-        resp.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        // The whole response has been received.
-        resp.on('end', () => {
-            try {
-                // Parse the data in the response
-                cardlist = JSON.parse(data);
-            }
-            catch(error) {
-                Log("Something went wrong with parsing data from Scryfall.");
-                Log('ERROR:' + error);
-                return;
-            }
-            var newCardlist = [];
-            if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                // For every card: check if it's already save, otherwise at it to the new list
-                cardlist.data.forEach(function(card) {
-                    cardId = card.oracle_id;
-
-                    if (!savedCardlist.some(c => c == cardId)) {
-                        newCardlist.push(card);
-                        savedCardlist.push(cardId);
-                    }
-                });
-
-                // If new list is empty, no new cards were found
-                if (newCardlist.length <= 0) {
-                    Log('No new cards were found with set code ' + set);
-                    if (verbose) {
-                        channelID.send('No new cards were found with set code ' + set + '.');
-                    }
+                if (!savedCardlist.some(c => c == cardId)) {
+                    newCardlist.push(card);
+                    savedCardlist.push(cardId);
                 }
-                else {
-                    // If new list wasn't empty, send one of the new cards to the channel every second
-                    Log(newCardlist.length + ' new cards were found with set code ' + set);
-                    var interval = setInterval(function(cards) {
-                        if (cards.length <= 0) {
-                            Log('Done with sending cards to channel.');
-                            clearInterval(interval);
-                        }
-                        else {
-                            // Get all relevant data from the card
-                            let card = cards.pop();
-                            var embed = generateEmbed(card, false);
-                            Log('Sending ' + card.name + ' to channel.');
+            });
 
-                            intervals.push({interval: interval, setcode: set, channel: channelID});
-
-                            channelID.send('', {embed});
-                        }
-                    }, 1000, newCardlist);
-
-                    try {
-                        // Save the updated list of saved cards to the datafile
-                        let savedCardlistJSON = JSON.stringify(savedCardlist);
-                        fs.writeFile(fileName, savedCardlistJSON, function(err) {
-                            if (err) Log("ERROR: " + err);
-                            Log('New card list has succesfully been saved!');
-                        });
-                    }
-                    catch(error) {
-                        Log("Something went wrong with saving new data.");
-                        Log("ERROR: " + error);
-                        return;
-                    }
+            // If new list is empty, no new cards were found
+            if (newCardlist.length <= 0) {
+                Log('No new cards were found with set code ' + set);
+                if (verbose) {
+                    channelID.send('No new cards were found with set code ' + set + '.');
                 }
             }
             else {
-                if (verbose) {
-                    channelID.send('Did not find any card with set code ' + set + '.');
+                // If new list wasn't empty, send one of the new cards to the channel every second
+                Log(newCardlist.length + ' new cards were found with set code ' + set);
+                var interval = setInterval(function(cards) {
+                    if (cards.length <= 0) {
+                        Log('Done with sending cards to channel.');
+                        clearInterval(interval);
+                    }
+                    else {
+                        // Get all relevant data from the card
+                        let card = cards.pop();
+                        var embed = generateEmbed(card, false);
+                        Log('Sending ' + card.name + ' to channel.');
+
+                        intervals.push({interval: interval, setcode: set, channel: channelID});
+
+                        channelID.send('', {embed});
+                    }
+                }, 1000, newCardlist);
+
+                try {
+                    // Save the updated list of saved cards to the datafile
+                    let savedCardlistJSON = JSON.stringify(savedCardlist);
+                    fs.writeFile(fileName, savedCardlistJSON, function(err) {
+                        if (err) Log("ERROR: " + err);
+                        Log('New card list has succesfully been saved!');
+                    });
+                }
+                catch(error) {
+                    Log("Something went wrong with saving new data.");
+                    Log("ERROR: " + error);
+                    return;
                 }
             }
-        });
+        }
+        else {
+            if (verbose) {
+                channelID.send('Did not find any card with set code ' + set + '.');
+            }
+        }
+    });
 
-        }).on("error", (err) => {
-            Log("Error: " + err.message);
-            channelID.send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
-        });
+    }).on("error", (err) => {
+        Log("Error: " + err.message);
+        channelID.send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
     });
 }
 
