@@ -347,6 +347,7 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
+    Log(AWSFileExists(fileName));
     if (AWSFileExists(fileName) == false) {
         Log("Cannot find file " + fileName + ".");
         writeToAWS(fileName, "[]");
