@@ -298,7 +298,7 @@ function generateEmbed(card, hasEmojiPermission) {
     return embed;
 }
     
-function readFromAWS(filename) {
+function readFromAWS(filename, func) {
     var params = {
         Bucket: bucketname, 
         Key: filename
@@ -307,13 +307,13 @@ function readFromAWS(filename) {
     s3.getObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
-            ret = false;
+            func(false);
         } else if (err) {
             Log("ERROR: Unknown error when trying to find " + filename);
             Log(err);
-            ret = false;
+            func(false);
         } else {
-            ret = data.Body;
+            func(data.Body);
         }
     });
     return ret;
@@ -336,22 +336,22 @@ function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     let savedCardlist = JSON.parse("[]");
-    Log(readFromAWS(fileName));
-    if (readFromAWS(fileName) == false) {
-        Log("Cannot find file " + fileName + ".");
-        writeToAWS(fileName, "[]");
-    } else {
-        try {
-            var body = readFromAWS(fileName)
-            savedCardlist = JSON.parse(Buffer.from(body).toString());
-            Log("Successfully read file " + fileName + ".");
+    readFromAWS(fileName, function(ret) {
+        if (ret == false) {
+            Log("Cannot find file " + fileName + ".");
+            writeToAWS(fileName, "[]");
+        } else {
+            try {
+                savedCardlist = JSON.parse(Buffer.from(ret).toString());
+                Log("Successfully read file " + fileName + ".");
+            }
+            catch(error) {
+                Log("Something went wrong with parsing data from existing saved file.");
+                Log('ERROR: ' + error);
+                return;
+            }
         }
-        catch(error) {
-            Log("Something went wrong with parsing data from existing saved file.");
-            Log('ERROR: ' + error);
-            return;
-        }
-    }
+    });
 
     if (verbose) {
         channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
@@ -454,14 +454,16 @@ function saveWatchedSets() {
 
 // Reads the array of watched sets and channel IDs from the data file
 function readWatchedSets() {
-    if (readFromAWS(WATCHEDSETCODESPATH) == false) {
-        watchedSetcodes = [];
-    } else {
-        var body = readFromAWS(WATCHEDSETCODESPATH);
-        watchedSetcodes = JSON.parse(Buffer.from(body).toString());
-        Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
-        startSpoilerWatches()
-    }
+    readFromAWS(WATCHEDSETCODESPATH, function(ret) {
+        if (ret == false) {
+            watchedSetcodes = [];
+        } else {
+            var body = readFromAWS(WATCHEDSETCODESPATH);
+            watchedSetcodes = JSON.parse(Buffer.from(body).toString());
+            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+            startSpoilerWatches()
+        }
+    };
     return watchedSetcodes;
 }
 
