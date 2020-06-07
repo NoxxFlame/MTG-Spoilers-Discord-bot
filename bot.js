@@ -453,8 +453,8 @@ function saveWatchedSets() {
 }
 
 // Reads the array of watched sets and channel IDs from the data file
-function readWatchedSets() {
-    readFromAWS(WATCHEDSETCODESPATH, function(ret) {
+async function readWatchedSets() {
+    const result = await readFromAWS(WATCHEDSETCODESPATH, function(ret) {
         if (ret == false) {
             watchedSetcodes = [];
         } else {
@@ -463,8 +463,9 @@ function readWatchedSets() {
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
             startSpoilerWatches()
         }
+        return watchedSetcodes;
     });
-    return watchedSetcodes;
+    return result;
 }
 
 // Start the spoiler watch intervals for all combinations in the saved file
