@@ -298,12 +298,11 @@ function generateEmbed(card, hasEmojiPermission) {
     return embed;
 }
     
-function readFromAWS(filename, func) {
+async function readFromAWS(filename, func) {
     var params = {
         Bucket: bucketname, 
         Key: filename
     };
-    var ret;
     s3.getObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
@@ -316,7 +315,6 @@ function readFromAWS(filename, func) {
             func(data.Body);
         }
     });
-    return ret;
 }
 
 function writeToAWS(filename, data) {
