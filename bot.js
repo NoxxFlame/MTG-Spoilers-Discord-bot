@@ -306,12 +306,10 @@ function readFromAWS(filename) {
     };
     s3.getObject(params, function(err, data) {
         if (err) {
-            console.log(err, err.stack);
-            console.log("big error");
+            console.log("ERROR: Could not find file " + filename);
             return false;
         } else {
-            console.log(data);
-            return data;
+            return data.Body;
         }
     });
 }
@@ -339,8 +337,7 @@ function getAllCards(set, channelID, verbose = false) {
         console.log("something is wrong");
     } else {
         try {
-            var body = readFromAWS(fileName).Body
-            console.log(readFromAWS(fileName))
+            var body = readFromAWS(fileName)
             savedCardlist = JSON.parse(body);
             Log("Successfully read file " + fileName + ".");
         }
@@ -455,7 +452,7 @@ function readWatchedSets() {
     if (!readFromAWS(WATCHEDSETCODESPATH)) {
         Log("Could not read file " + WATCHEDSETCODESPATH + ".");
     } else {
-        var body = readFromAWS(WATCHEDSETCODESPATH).Body;
+        var body = readFromAWS(WATCHEDSETCODESPATH);
         watchedSetcodes = JSON.parse(body);
         Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         startSpoilerWatches()
