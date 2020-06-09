@@ -1,22 +1,16 @@
 const discord = require('discord.js');
 const aws = require('aws-sdk');
-const fs = require("fs");
 const _ = require("lodash");
-const util = require('util');
+const https = require('https');
 
 //Constants
 WATCHEDSETCODESDIRECTORY = 'data';
 WATCHEDSETCODESFILENAME = 'watchedsetcodes.json';
 WATCHEDSETCODESPATH = WATCHEDSETCODESDIRECTORY + '/' + WATCHEDSETCODESFILENAME;
 SPOILERWATCHINTERVALTIME = 1000 * 30 * 60;
+BUCKETNAME = process.env.AWS_BUCKET_NAME
 
-const s3 = new aws.S3({
-    accessKeyId: process.env.AWS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_KEY
-});
-
-const bucketname = process.env.AWS_BUCKET_NAME
-
+// Emoji codes for mana symbols
 const manamojis = {
     "0":"0_:344491158384410625",
     "1":"1_:344491158723887107",
@@ -49,16 +43,11 @@ const manamojis = {
     "bp":"bp:608749299135807508",
     "br":"br:344491161362366465",
     "c":"c_:344491160636489739",
-    "chaos":"chaos:344491160267653130",
     "e":"e_:344491160829558794",
     "g":"g_:344491161169428481",
     "gp":"gp:344491161102319616",
     "gu":"gu:344491161223692300",
     "gw":"gw:344491161139937282",
-    "half":"half:344491161164972032",
-    "hr":"hr:344491160787615748",
-    "hw":"hw:344491161181749268",
-    "infinity":"infinity:344491160619843593",
     "q":"q_:344491161060245504",
     "r":"r_:344491161274023938",
     "rg":"rg:344491161295257600",
@@ -79,6 +68,7 @@ const manamojis = {
     "z":"z_:344491161035210755"
 };
 
+// Colors for discord card embed
 const colors = {
     "W": 0xF8F6D8,
     "U": 0xC1D7E9,
@@ -91,11 +81,17 @@ const colors = {
     "NONE": 0xDAD9DE
 };
 
+// Initialize AWS S3 objet
+const s3 = new aws.S3({
+    accessKeyId: process.env.AWS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_KEY
+});
+
 // Initialize discord Bot
 Log('Initializing bot...');
 var bot = new discord.Client();
 
-//When bot is ready
+// When bot is ready
 bot.on('ready', function (evt) {
     Log('Connected!');
     bot.user.setPresence({
@@ -104,91 +100,37 @@ bot.on('ready', function (evt) {
             type: 'WATCHING'
         }
     });
-
-    // Read watched sets and start spoiler watches
-    watchedSetcodes = readWatchedSets();
-    intervals = [];
+    setInterval(readWatchedSets(), SPOILERWATCHINTERVALTIME)
 });
 
-//When bot reads message
+// When bot reads message
 bot.on('message', async message => {
-    // Our bot needs to know if it will execute a command
-    // It will listen for messages that will start with `!`
     if (message.content.substring(0, 1) == '!') {
         try {
             var args = message.content.substring(1).split(' ');
             var cmd = args[0];
-        
             args = args.splice(1);
             let set = args[0];
             switch(cmd.toLowerCase()) {
-                //Get all cards from the given set and send them in the current channel
-                case 'getallCards':
-                case 'getallcards':
                 case 'getall':
                     getAllCards(set, message.channel, true);
                 break;
-                //Start spoilerwatch for the given set ID in the current channel
+
                 case 'watch':
-                case 'startwatch':
-                    //Add the combination to the watched sets and save this
-                    watchedSetcodes.push({"setCode":set, "channelID":message.channel});
-                    saveWatchedSets()
-                    Log('Starting spoilerwatch for set ' + set + '.');
-                    message.channel.send('Starting spoilerwatch for set ' + set + '.');
-                    //Immediately look for new cards
-                    Log('Start looking for new cards on ' + Date.now());
-                    getAllCards(set, message.channel);
-                    //Start the interval to look for new cards
-                    startSpoilerWatch(set, message.channel);
+                    startSpoilerWatch(set, message.channel, true)
                 break;
-                //Stop spoilerwatch for the given set ID in the current channel
+
                 case 'unwatch':
-                case 'stopwatch':
-                    Log('checking spoilerwatch for set ' + set + '.');
-                    Log('Checking if set matches with ' + set + ' and channel matches with ' + message.channel);
-                    // Check if set is watched in the current channel
-                    if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
-                        watchedset.setCode == set && watchedset.channelID == message.channel
-                    })) 
-                    {
-                        Log('Stopping spoilerwatch for set ' + set + '.');
-                        message.channel.send('Stopping spoilerwatch for set ' + set + '.');
-                        // Find the timeout for this set and channel
-                        intervals.find((o, i) => {
-                            if (o.setcode == set && o.channel == message.channel) {
-                                // Stop the interval that checks for spoilers
-                                clearInterval(o.interval);
-                                intervals.splice(i, 1);
-                                return true;
-                            }
-                        });
-                        // Remove the set and channel combination from the watchedSetcodes and save it
-                        watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
-                            watchedset.setCode != set || watchedset.channelID != message.channel
-                        });
-                        saveWatchedSets()
-                    }
+                    stopSpoilerWatch(set, message.channel, true)
                 break;
-                // Clears the saved data for the given set in the current channel
+
                 case 'clear':
-                    let fileName = getFilename(set, message.channel);
-                    try {
-                        writeToAWS(fileName, "[]");
-                        Log("Successfully cleared file " + fileName + ".");
-                        message.channel.send("Successfully cleared file for set with code " + set + ".");
-                    }
-                    catch(error) {
-                        message.channel.send("Something went wrong with clearing file for set with code " + set + ".");
-                        Log("Something went wrong with clearing file for set with code " + set + ".");
-                        Log('ERROR: ' + error);
-                    }
+                    clearAllCards(set, message.channel, true)
                 break;
             }
-        }
-        catch (error) {
+        } catch(error) {
             Log('UNCAUGHT ERROR: ' + error)
-            message.channel.send("Something went really wrong. Please tell Lars he's an idiot.");
+            message.channel.send("Something went wrong.");
         }
      }
 });
@@ -201,6 +143,7 @@ bot.on('disconnect', function(errMsg, code) {
     }
 });
      
+// Generate the description of a card
 function generateDescriptionText(card) {
     const ptToString = (card) =>
         '**'+card.power.replace(/\*/g, '\\*') + "/" + card.toughness.replace(/\*/g, '\\*')+'**';
@@ -212,19 +155,24 @@ function generateDescriptionText(card) {
         type += `${card.lang && card.lang !== 'en' ? ' :flag_' + card.lang + ':':''})`;
         description.push(type);
     }
+    
     if (card.oracle_text) { // reminder text in italics
         const text = card.printed_text || card.oracle_text;
         description.push(text.replace(/[()]/g, m => m === '(' ? '*(':')*'));
     }
+    
     if (card.flavor_text) { // flavor text in italics
         description.push('*' + card.flavor_text+'*');
     }
+    
     if (card.loyalty) { // bold loyalty
         description.push('**Loyalty: ' + card.loyalty+'**');
     }
+    
     if (card.power) { // bold P/T
         description.push(ptToString(card));
     }
+    
     if (card.card_faces) {
         // split cards are special
         card.card_faces.forEach(face => {
@@ -238,9 +186,11 @@ function generateDescriptionText(card) {
             description.push('');
         });
     }
+    
     return description.join('\n');
 }
 
+// Replace text of the form {X} with mana symbol emojis
 function renderEmojis(text) {
     return text.replace(/{[^}]+?}/ig, match => {
         const code = match.replace(/[^a-z0-9]/ig,'').toLowerCase();
@@ -248,6 +198,7 @@ function renderEmojis(text) {
     });
 }
 
+// Get the border colour for card embeds
 function getBorderColor(card) {
     let color;
     if (!card.colors || card.colors.length === 0) {
@@ -259,35 +210,30 @@ function getBorderColor(card) {
     } else {
         color = colors[card.colors[0]];
     }
+    
     return color;
 }
 
+// Generate discord embed from card
 function generateEmbed(card, hasEmojiPermission) {
-    // generate embed title and description text
-    // use printed name (=translated) over English name, if available
     let title = card.name;
-
     if (card.mana_cost) {
         title += ' ' + card.mana_cost;
     }
-
-    // DFC use card_faces array for each face
+    
     if (card.layout === 'transform' && card.card_faces) {
         if (card.card_faces[0].mana_cost) {
             title += ' ' + card.card_faces[0].mana_cost;
         }
         card.image_uris = card.card_faces[0].image_uris;
     }
-
+    
     let description = generateDescriptionText(card);
-
-    // are we allowed to use custom emojis? cool, then do so, but make sure the title still fits
     if(hasEmojiPermission) {
         title = _.truncate(renderEmojis(title), {length: 256, separator: '<'});
         description = renderEmojis(description);
     }
-
-    // instantiate embed object
+    
     const embed = new discord.MessageEmbed({
         title,
         description,
@@ -296,37 +242,38 @@ function generateEmbed(card, hasEmojiPermission) {
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
         image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
     });
+    
     return embed;
 }
     
-async function readFromAWS(filename) {
+// Read a file from AWS
+function readFromAWS(filename, func) {
     var params = {
-        Bucket: bucketname, 
+        Bucket: BUCKETNAME, 
         Key: filename
     };
     const result = await s3.getObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
-            return false;
+            func(false);
         } else if (err) {
             Log("ERROR: Unknown error when trying to find " + filename);
             Log(err);
-            return false;
+            func(false);
         } else {
-            return data.Body;
+            func(data.Body);
         }
     });
-    return result;
 }
 
 function writeToAWS(filename, data) {
     var params = {
-        Bucket: bucketname, 
+        Bucket: BUCKETNAME, 
         Key: filename,
         Body: data
     };
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
-    return s3.upload(params, options, function(err, data) {
+    s3.upload(params, options, function(err, data) {
         if (err) Log(err);
     });
 }
@@ -335,162 +282,161 @@ function writeToAWS(filename, data) {
 async function getAllCards(set, channelID, verbose = false) {
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
-    let savedCardlist = JSON.parse("[]");
-    let ret = await readFromAWS(fileName);
-    if (ret == false) {
-        Log("Cannot find file " + fileName + ".");
-        writeToAWS(fileName, "[]");
-        return false;
-    } else {
-        try {
-            savedCardlist = JSON.parse(Buffer.from(ret).toString());
-            Log("Successfully read file " + fileName + ".");
-            return savedCardlist;
-        }
-        catch(error) {
-            Log("Something went wrong with parsing data from existing saved file.");
-            Log('ERROR: ' + error);
-            return false;
-        }
-    }
-    Log(result);
-    if (result) {
-        savedCardlist = result;
-    } else {
-        return;
-    }
-
-    if (verbose) {
-        channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
-    }
-
-    // Make a request to the Scryfall api
-    const https = require('https');
-    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
-    let data = '';
-
-    // A chunk of data has been received.
-    resp.on('data', (chunk) => {
-        data += chunk;
-    });
-
-    // The whole response has been received.
-    resp.on('end', () => {
-        try {
-            // Parse the data in the response
-            cardlist = JSON.parse(data);
-        }
-        catch(error) {
-            Log("Something went wrong with parsing data from Scryfall.");
-            Log('ERROR:' + error);
-            return;
-        }
-        var newCardlist = [];
-        if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-            // For every card: check if it's already save, otherwise at it to the new list
-            cardlist.data.forEach(function(card) {
-                cardId = card.oracle_id;
-
-                if (!savedCardlist.some(c => c == cardId)) {
-                    newCardlist.push(card);
-                    savedCardlist.push(cardId);
-                }
-            });
-
-            // If new list is empty, no new cards were found
-            if (newCardlist.length <= 0) {
-                Log('No new cards were found with set code ' + set);
-                if (verbose) {
-                    channelID.send('No new cards were found with set code ' + set + '.');
-                }
+    readFromAWS(fileName, function(ret) {
+        let savedCardlist = JSON.parse("[]");
+        if (ret == false) {
+            Log("Cannot find file " + fileName + ".");
+            writeToAWS(fileName, "[]");
+        } else {
+            try {
+                savedCardlist = JSON.parse(Buffer.from(ret).toString());
+                Log("Successfully read file " + fileName + ".");
+            } catch(error) {
+                Log("Something went wrong with parsing data from existing saved file.");
+                Log('ERROR: ' + error);
             }
-            else {
-                // If new list wasn't empty, send one of the new cards to the channel every second
-                Log(newCardlist.length + ' new cards were found with set code ' + set);
-                var interval = setInterval(function(cards) {
-                    if (cards.length <= 0) {
-                        Log('Done with sending cards to channel.');
-                        clearInterval(interval);
-                    }
-                    else {
-                        // Get all relevant data from the card
-                        let card = cards.pop();
-                        var embed = generateEmbed(card, false);
-                        Log('Sending ' + card.name + ' to channel.');
+        }
+        if (!savedCardList) return;
+        
+        if (verbose) channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
+        
+        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
+            let data = '';
 
-                        intervals.push({interval: interval, setcode: set, channel: channelID});
-
-                        channelID.send('', {embed});
-                    }
-                }, 1000, newCardlist);
-
+            resp.on('data', (chunk) => {
+                data += chunk;
+            });   
+            
+            resp.on('end', () => {
+                let cardlist;
                 try {
-                    // Save the updated list of saved cards to the datafile
-                    let savedCardlistJSON = JSON.stringify(savedCardlist);
-                    writeToAWS(fileName, savedCardlistJSON);
-                }
-                catch(error) {
-                    Log("Something went wrong with saving new data.");
-                    Log("ERROR: " + error);
+                    cardlist = JSON.parse(data);
+                } catch(error) {
+                   Log("Something went wrong with parsing data from Scryfall.");
+                    Log('ERROR:' + error);
                     return;
                 }
-            }
-        }
-        else {
-            if (verbose) {
-                channelID.send('Did not find any card with set code ' + set + '.');
-            }
-        }
-    });
+                var newCardlist = [];
+                if (cardlist.object == 'list' && cardlist.total_cards > 0) {
+                    cardlist.data.forEach(function(card) {
+                        cardId = card.oracle_id;
+                        if (!savedCardlist.some(c => c == cardId)) {
+                            newCardlist.push(card);
+                            savedCardlist.push(cardId);
+                        }
+                    });
 
-    }).on("error", (err) => {
-        Log("Error: " + err.message);
-        channelID.send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
+                    if (newCardlist.length <= 0) {
+                        Log('No new cards were found with set code ' + set);
+                        if (verbose) channelID.send('No new cards were found with set code ' + set + '.');
+                    } else {
+                        Log(newCardlist.length + ' new cards were found with set code ' + set);
+                        var interval = setInterval(function(cards) {
+                            if (cards.length <= 0) {
+                                Log('Done with sending cards to channel.');
+                                clearInterval(interval);
+                            } else {
+                                let card = cards.pop();
+                                var embed = generateEmbed(card, false);
+                                Log('Sending ' + card.name + ' to channel.');
+                                channelID.send('', {embed});
+                            }
+                        }, 1000, newCardlist);
+
+                        try {
+                            let savedCardlistJSON = JSON.stringify(savedCardlist);
+                            writeToAWS(fileName, savedCardlistJSON);
+                        } catch(error) {
+                            Log("Something went wrong with saving new data.");
+                            Log("ERROR: " + error);
+                            return;
+                        }
+                    }
+                } else {
+                    if (verbose) channelID.send('Did not find any card with set code ' + set + '.');
+                }
+            });
+        }).on("error", (err) => {
+            Log("Error: " + err.message);
+            channelID.send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
+        });
     });
 }
 
 // Returns the data filename for the given set and channelID
 function getFilename(set, channelID) {
-    return 'data/' + channelID + '-' + set + '-data.json';
+    return 'data/' + channelID + '-' + set.toUpperCase() + '-data.json';
 }
 
-// Saves the array of watched sets and channel IDs to the data file
-function saveWatchedSets() {
-    writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
-}
-
-// Reads the array of watched sets and channel IDs from the data file
-async function readWatchedSets() {
-    let ret = await readFromAWS(WATCHEDSETCODESPATH);
-    if (ret == false) {
-        watchedSetcodes = [];
-    } else {
-        watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
-        Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
-    }
-    startSpoilerWatches()
-    return watchedSetcodes;
-}
-
-// Start the spoiler watch intervals for all combinations in the saved file
-function startSpoilerWatches() {
-    for (var i = 0; i < watchedSetcodes.length; i++) {
-        var watchedSet = watchedSetcodes[i];
-        Log('Watched set: ' + watchedSet.setCode + ' on channel' + watchedSet.channelID.name);
-        Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID.id);
-        startSpoilerWatch(watchedSet.setCode, watchedSet.channelID.id);
-        getAllCards(watchedSet.setCode, watchedSet.channelID.id);
-    }
-    return;
+// Reads the array of watched sets and channel IDs from the data file and sends new cards to channels
+function readWatchedSets() {
+    readFromAWS(WATCHEDSETCODESPATH, function(ret) {
+        let watchedSetcodes = [];
+        if (ret) {
+            watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
+            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+        }
+        for (var i = 0; i < watchedSetcodes.length; i++) {
+            var watchedSet = watchedSetcodes[i];
+            Log('Watched set: ' + watchedSet.setCode + ' on channel' + watchedSet.channelID.name);
+            Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID.id);
+            getAllCards(watchedSet.setCode, watchedSet.channelID.id);
+        }
+        writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
+    });
 }
 
 //Start the interval to look for new cards for the given set and channelID
-function startSpoilerWatch(set, channelID) {
-    setInterval(function(set) {
-        Log('Start looking for new cards in set ' + set + ' for channel ' + channelID);
-        getAllCards(set, channelID);
-    }, SPOILERWATCHINTERVALTIME, set);
-    return;
+function startSpoilerWatch(set, channelID, verbose = false) {
+    Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
+    if (verbose) channelID.send('Starting spoilerwatch for set ' + set + '.');
+    getAllCards(set, channelID);
+    readFromAWS(WATCHEDSETCODESPATH, function(ret) {
+        let watchedSetcodes = [];
+        if (ret) {
+            watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
+            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+        }
+        watchedSetcodes.push({"setCode":set, "channelID":message.channel});
+        writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
+    });
+}
+
+//Stop the interval to look for new cards for the given set and channelID
+function stopSpoilerWatch(set, channelID, verbose = false) {
+    readFromAWS(WATCHEDSETCODESPATH, function(ret) {
+        let watchedSetcodes = [];
+        if (ret) {
+            watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
+            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+        }
+        if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
+            watchedset.setCode == set && watchedset.channelID == message.channel
+        })) {
+            Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
+            if (verbose) channelID.send('Stopping spoilerwatch for set ' + set + '.');
+            watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
+                watchedset.setCode != set || watchedset.channelID != message.channel
+            });
+        } else {
+            Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
+            if (verbose) channelID.send('Could not stop spoilerwatch for set ' + set + '.');
+        }
+        writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
+    });   
+}
+
+function clearAllCards(set, channelID, verbose = false) {
+    let fileName = getFilename(set, channelID);
+    try {
+        writeToAWS(fileName, "[]");
+        Log("Successfully cleared file " + fileName + ".");
+        if (verbose) channelID.send("Successfully cleared file for set with code " + set + ".");
+    } catch(error) {
+        if (verbose) channelID.send("Something went wrong with clearing file for set with code " + set + ".");
+        Log("Something went wrong with clearing file for set with code " + set + ".");
+        Log('ERROR: ' + error);
+    }
 }
 
 // Returns the current date in a readable format
