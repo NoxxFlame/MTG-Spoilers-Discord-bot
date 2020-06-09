@@ -450,31 +450,7 @@ function clearAllCards(set, channelID, verbose = false) {
     }
 }
 
-// Returns the current date in a readable format
-function getDate() {
-    var today = new Date();
-    var dd = today.getDate();
-    var mm = today.getMonth() + 1; //January is 0!
-    var h = today.getHours();
-    var m = today.getMinutes();
-
-    var yyyy = today.getFullYear();
-    if (dd < 10) {
-    dd = '0' + dd;
-    } 
-    if (mm < 10) {
-    mm = '0' + mm;
-    } 
-    if (h < 10) {
-    h = '0' + h;
-    } 
-    if (m < 10) {
-    m = '0' + m;
-    } 
-    var today = '[' + dd + '/' + mm + '/' + yyyy + ' ' + h + ':' + m + '] - ';
-    return today;
-}
-
 function Log(message) {
-    console.log(getDate() + " - " + message);
+    var today = new Date();
+    console.log(today.toLocaleString('en-US', { timeZone: 'Australia/Melbourne' }) + " - " + message);
 }
