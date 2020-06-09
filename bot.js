@@ -295,7 +295,7 @@ async function getAllCards(set, channelID, verbose = false) {
             }
         }
         
-        if (verbose) bot.channels.get(channelID).send('Trying to get newly spoiled cards from set with code ' + set + '...');
+        if (verbose) bot.channels.cache.get(channelID).send('Trying to get newly spoiled cards from set with code ' + set + '...');
         
         https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
             let data = '';
@@ -325,7 +325,7 @@ async function getAllCards(set, channelID, verbose = false) {
 
                     if (newCardlist.length <= 0) {
                         Log('No new cards were found with set code ' + set);
-                        if (verbose) bot.channels.get(channelID).send('No new cards were found with set code ' + set + '.');
+                        if (verbose) bot.channels.cache.get(channelID).send('No new cards were found with set code ' + set + '.');
                     } else {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
                         var interval = setInterval(function(cards) {
@@ -336,7 +336,7 @@ async function getAllCards(set, channelID, verbose = false) {
                                 let card = cards.pop();
                                 var embed = generateEmbed(card, true);
                                 Log('Sending ' + card.name + ' to channel.');
-                                bot.channels.get(channelID).send('', {embed});
+                                bot.channels.cache.get(channelID).send('', {embed});
                             }
                         }, 1000, newCardlist);
 
@@ -350,12 +350,12 @@ async function getAllCards(set, channelID, verbose = false) {
                         }
                     }
                 } else {
-                    if (verbose) bot.channels.get(channelID).send('Did not find any card with set code ' + set + '.');
+                    if (verbose) bot.channels.cache.get(channelID).send('Did not find any card with set code ' + set + '.');
                 }
             });
         }).on("error", (err) => {
             Log("Error: " + err.message);
-            bot.channels.get(channelID).send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
+            bot.channels.cache.get(channelID).send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
         });
     });
 }
@@ -386,7 +386,7 @@ function readWatchedSets() {
 //Start the interval to look for new cards for the given set and channelID
 function startSpoilerWatch(set, channelID, verbose = false) {
     Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
-    if (verbose) bot.channels.get(channelID).send('Starting spoilerwatch for set ' + set + '.');
+    if (verbose) bot.channels.cache.get(channelID).send('Starting spoilerwatch for set ' + set + '.');
     getAllCards(set, channelID);
     readFromAWS(WATCHEDSETCODESPATH, function(ret) {
         let watchedSetcodes = [];
@@ -411,13 +411,13 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             watchedset.setCode == set && watchedset.channelID == channelID
         })) {
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
-            if (verbose) bot.channels.get(channelID).send('Stopping spoilerwatch for set ' + set + '.');
+            if (verbose) bot.channels.cache.get(channelID).send('Stopping spoilerwatch for set ' + set + '.');
             watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
                 watchedset.setCode != set || watchedset.channelID != channelID
             });
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
-            if (verbose) bot.channels.get(channelID).send('Could not stop spoilerwatch for set ' + set + '.');
+            if (verbose) bot.channels.cache.get(channelID).send('Could not stop spoilerwatch for set ' + set + '.');
         }
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
     });   
@@ -428,9 +428,9 @@ function clearAllCards(set, channelID, verbose = false) {
     try {
         writeToAWS(fileName, "[]");
         Log("Successfully cleared file " + fileName + ".");
-        if (verbose) bot.channels.get(channelID).send("Successfully cleared file for set with code " + set + ".");
+        if (verbose) bot.channels.cache.get(channelID).send("Successfully cleared file for set with code " + set + ".");
     } catch(error) {
-        if (verbose) bot.channels.get(channelID).send("Something went wrong with clearing file for set with code " + set + ".");
+        if (verbose) bot.channels.cache.get(channelID).send("Something went wrong with clearing file for set with code " + set + ".");
         Log("Something went wrong with clearing file for set with code " + set + ".");
         Log('ERROR: ' + error);
     }
