@@ -6,7 +6,7 @@ Command prefix is '!', no functionality implemented yet to adjust this.
 ### getall [SETCODE]
 Will send a message for every card from the set with the given setcode that hasn't been send in that channel yet.
 ### watch [SETCODE]
-Will start a watch for the set with the given setcode. This means the bot will watch for any new cards spoiled for that set and automatically send any new cards to the channel every half hour.
+Will start a watch for the set with the given setcode. This means the bot will watch for any new cards spoiled for that set and automatically send any new cards to the channel every twenty minutes.
 ### unwatch [SETCODE]
 Will stop the watch for the set with the given setcode if any is currently started. This will stop the bot from watching for new spoilers and stop it from sending any messages automatically.
 ### clear [SETCODE]
