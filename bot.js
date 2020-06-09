@@ -452,6 +452,7 @@ function clearAllCards(set, channelID, verbose = false) {
 
 function Log(message) {
     var today = new Date();
-    var options = {timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true};
-    console.log(today.toLocaleString("en-GB", {timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + today.toLocaleString("en-US", {timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit'}) + " - " + message);
+    console.log(today.toLocaleString("en-GB", {timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit'})
+                + ' ' + today.toLocaleString("en-US", {timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit'})
+                + " - " + message);
 }
