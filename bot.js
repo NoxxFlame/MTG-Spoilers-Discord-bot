@@ -96,6 +96,12 @@ const s3 = new aws.S3({
 Log('Initializing bot...');
 var bot = new discord.Client();
 
+try {
+    bot.login(process.env.DISCORD_TOKEN);
+} catch(err) {
+    Log(err);
+}
+
 // When bot is ready
 bot.on('ready', function (evt) {
     Log('Connected!');
@@ -476,10 +482,4 @@ function getDate() {
 
 function Log(message) {
     console.log(getDate() + " - " + message);
-}
-
-try {
-    bot.login(process.env.DISCORD_TOKEN);
-} catch(err) {
-    Log(err);
 }
