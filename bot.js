@@ -252,7 +252,7 @@ function readFromAWS(filename, func) {
         Bucket: BUCKETNAME, 
         Key: filename
     };
-    const result = await s3.getObject(params, function(err, data) {
+    s3.getObject(params, function(err, data) {
         if (err && (err.code === 'NotFound' || err.code === 'NoSuchKey')) {
             Log("ERROR: Could not find file " + filename);
             func(false);
