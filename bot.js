@@ -398,7 +398,7 @@ function startSpoilerWatch(set, channelID, verbose = false) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         }
-        watchedSetcodes.push({"setCode":set, "channelID":message.channel});
+        watchedSetcodes.push({"setCode":set, "channelID":channelID});
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
     });
 }
@@ -412,12 +412,12 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         }
         if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
-            watchedset.setCode == set && watchedset.channelID == message.channel
+            watchedset.setCode == set && watchedset.channelID == channelID
         })) {
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channelID.send('Stopping spoilerwatch for set ' + set + '.');
             watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
-                watchedset.setCode != set || watchedset.channelID != message.channel
+                watchedset.setCode != set || watchedset.channelID != channelID
             });
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
