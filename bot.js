@@ -100,7 +100,8 @@ bot.on('ready', function (evt) {
             type: 'WATCHING'
         }
     });
-    setInterval(readWatchedSets(), SPOILERWATCHINTERVALTIME)
+    setInterval(function() {
+        readWatchedSets()}, SPOILERWATCHINTERVALTIME);
 });
 
 // When bot reads message
