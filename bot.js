@@ -298,7 +298,6 @@ async function getAllCards(set, channelID, verbose = false) {
                 Log('ERROR: ' + error);
             }
         }
-        if (!savedCardList) return;
         
         if (verbose) channelID.send('Trying to get newly spoiled cards from set with code ' + set + '...');
         
