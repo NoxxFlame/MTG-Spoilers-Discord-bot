@@ -111,19 +111,19 @@ bot.on('message', async message => {
             let set = args[0];
             switch(cmd.toLowerCase()) {
                 case 'getall':
-                    getAllCards(set, message.channel, true);
+                    getAllCards(set, message.channel.id, true);
                 break;
 
                 case 'watch':
-                    startSpoilerWatch(set, message.channel, true)
+                    startSpoilerWatch(set, message.channel.id, true)
                 break;
 
                 case 'unwatch':
-                    stopSpoilerWatch(set, message.channel, true)
+                    stopSpoilerWatch(set, message.channel.id, true)
                 break;
 
                 case 'clear':
-                    clearAllCards(set, message.channel, true)
+                    clearAllCards(set, message.channel.id, true)
                 break;
             }
         } catch(error) {
