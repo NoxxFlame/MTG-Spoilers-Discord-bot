@@ -100,6 +100,7 @@ bot.on('ready', function (evt) {
             type: 'WATCHING'
         }
     });
+    readWatchedSets();
     setInterval(function() {
         readWatchedSets()}, SPOILERWATCHINTERVALTIME);
 });
