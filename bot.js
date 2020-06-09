@@ -391,7 +391,7 @@ function readWatchedSets() {
         }
         for (var i = 0; i < watchedSetcodes.length; i++) {
             var watchedSet = watchedSetcodes[i];
-            Log('Watched set: ' + watchedSet.setCode + ' on channel' + watchedSet.channelID.name);
+            Log('Watched set: ' + watchedSet.setCode + ' on channel ' + watchedSet.channelID.name);
             Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID.id);
             getAllCards(watchedSet.setCode, watchedSet.channelID.id);
         }
