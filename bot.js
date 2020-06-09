@@ -278,6 +278,7 @@ function writeToAWS(filename, data) {
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
 async function getAllCards(set, channelID, verbose = false) {
+    const channel = bot.channels.cache.get(channelID);
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     readFromAWS(fileName, function(ret) {
@@ -336,7 +337,7 @@ async function getAllCards(set, channelID, verbose = false) {
                                 let card = cards.pop();
                                 var embed = generateEmbed(card, true);
                                 Log('Sending ' + card.name + ' to channel.');
-                                bot.channels.cache.get(channelID).send('', {embed});
+                                channel.send('', {embed});
                             }
                         }, 1000, newCardlist);
 
@@ -350,12 +351,12 @@ async function getAllCards(set, channelID, verbose = false) {
                         }
                     }
                 } else {
-                    if (verbose) bot.channels.cache.get(channelID).send('Did not find any card with set code ' + set + '.');
+                    if (verbose) channel.send('Did not find any card with set code ' + set + '.');
                 }
             });
         }).on("error", (err) => {
             Log("Error: " + err.message);
-            bot.channels.cache.get(channelID).send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
+            channel.send('Error trying to get cards with set code ' + set + './n' + 'Check the console for more details.');
         });
     });
 }
@@ -385,8 +386,9 @@ function readWatchedSets() {
 
 //Start the interval to look for new cards for the given set and channelID
 function startSpoilerWatch(set, channelID, verbose = false) {
+    const channel = bot.channels.cache.get(channelID);
     Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
-    if (verbose) bot.channels.cache.get(channelID).send('Starting spoilerwatch for set ' + set + '.');
+    if (verbose) channel.send('Starting spoilerwatch for set ' + set + '.');
     getAllCards(set, channelID);
     readFromAWS(WATCHEDSETCODESPATH, function(ret) {
         let watchedSetcodes = [];
@@ -401,6 +403,7 @@ function startSpoilerWatch(set, channelID, verbose = false) {
 
 //Stop the interval to look for new cards for the given set and channelID
 function stopSpoilerWatch(set, channelID, verbose = false) {
+    const channel = bot.channels.cache.get(channelID);
     readFromAWS(WATCHEDSETCODESPATH, function(ret) {
         let watchedSetcodes = [];
         if (ret) {
@@ -411,26 +414,27 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             watchedset.setCode == set && watchedset.channelID == channelID
         })) {
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
-            if (verbose) bot.channels.cache.get(channelID).send('Stopping spoilerwatch for set ' + set + '.');
+            if (verbose) channel.send('Stopping spoilerwatch for set ' + set + '.');
             watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
                 watchedset.setCode != set || watchedset.channelID != channelID
             });
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
-            if (verbose) bot.channels.cache.get(channelID).send('Could not stop spoilerwatch for set ' + set + '.');
+            if (verbose) channel.send('Could not stop spoilerwatch for set ' + set + '.');
         }
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
     });   
 }
 
 function clearAllCards(set, channelID, verbose = false) {
+    const channel = bot.channels.cache.get(channelID);
     let fileName = getFilename(set, channelID);
     try {
         writeToAWS(fileName, "[]");
         Log("Successfully cleared file " + fileName + ".");
-        if (verbose) bot.channels.cache.get(channelID).send("Successfully cleared file for set with code " + set + ".");
+        if (verbose) channel.send("Successfully cleared file for set with code " + set + ".");
     } catch(error) {
-        if (verbose) bot.channels.cache.get(channelID).send("Something went wrong with clearing file for set with code " + set + ".");
+        if (verbose) channel.send("Something went wrong with clearing file for set with code " + set + ".");
         Log("Something went wrong with clearing file for set with code " + set + ".");
         Log('ERROR: ' + error);
     }
