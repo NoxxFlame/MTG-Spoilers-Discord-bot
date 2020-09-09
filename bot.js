@@ -431,22 +431,16 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH);
         }
-        let found = false;
+        let found = -1;
         watchedSetcodes.forEach(function(watchedset) {
             if (watchedset.setCode == set && watchedset.channelID == channelID) {
-                found = true;
+                found = watchedSetcodes.indexOf(watchedset);
             }
         });
-        if (found) {
+        if (found > -1) {
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Stopping spoilerwatch for set ' + set + '.');
-            let filteredWatchedSetcodes = []
-            watchedSetcodes.forEach(function(watchedset) {
-                if (watchedset.setCode != set || watchedset.channelID != channelID) {
-                    filteredWatchedSetcodes.push(filteredWatchedSetcodes);
-                }
-            });
-            watchedSetcodes = filteredWatchedSetcodes;
+            watchedSetcodes.splice(found, 1);
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Could not stop spoilerwatch for set ' + set + '.');
