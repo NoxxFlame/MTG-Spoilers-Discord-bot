@@ -229,21 +229,15 @@ function generateEmbed(card, hasEmojiPermission) {
         title += ' ' + card.mana_cost;
     }
     
-    if (card.card_faces) {
-        if (card.layout === 'transform') {
-            if (card.card_faces[0].mana_cost) {
-                title += ' ' + card.card_faces[0].mana_cost;
-            }
-            card.image_uris = card.card_faces[0].image_uris;
-        } else if (card.layout === 'modal_dfc') {
-            if (card.card_faces[0].mana_cost) {
-                title += ' ' + card.card_faces[0].mana_cost;
-            }
-            if (card.card_faces[1].mana_cost) {
-                title += ' // ' + card.card_faces[1].mana_cost;
-            }
-            card.image_uris = card.card_faces[0].image_uris;
+    if (card.card_faces && (card.layout === 'transform' || card.layout === 'modal_dfc')) {
+        if (card.card_faces[0].mana_cost) {
+            title += ' ' + card.card_faces[0].mana_cost;
         }
+        // Modal DFCs might have spells on both sides at some point so putting this here just in case
+        if (card.layout === 'modal_dfc' && card.card_faces[1].mana_cost) {
+            title += ' // ' + card.card_faces[1].mana_cost;
+        }
+        card.image_uris = card.card_faces[0].image_uris;
     }
     
     let description = generateDescriptionText(card);
