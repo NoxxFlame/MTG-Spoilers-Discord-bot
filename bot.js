@@ -137,7 +137,7 @@ bot.on('message', async message => {
                 break;
             }
         } catch(error) {
-            Log('UNCAUGHT ERROR: ' + error)
+            Log('ERROR: ' + error)
             message.channel.send("Something went wrong.");
         }
      }
@@ -145,7 +145,7 @@ bot.on('message', async message => {
 
 // Reconnect if the bot is disconnected
 bot.on('disconnect', function(errMsg, code) { 
-    Log('ERROR code ' + code +': ' + errMsg);
+    Log('ERROR: ' + code +': ' + errMsg);
     if (code === 1000) {
         bot.connect();
     }
@@ -276,7 +276,7 @@ function readFromAWS(filename, func) {
             func(false);
         } else if (err) {
             Log("ERROR: Unknown error when trying to find " + filename);
-            Log(err);
+            Log("ERROR: " + err);
             func(false);
         } else {
             func(data.Body);
@@ -292,7 +292,7 @@ function writeToAWS(filename, data) {
     };
     var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
     s3.upload(params, options, function(err, data) {
-        if (err) Log(err);
+        if (err) Log("ERROR: " + err);
     });
 }
 
@@ -304,14 +304,14 @@ async function getAllCards(set, channelID, verbose = false) {
     readFromAWS(fileName, function(ret) {
         let savedCardlist = JSON.parse("[]");
         if (ret == false) {
-            Log("Creating file " + fileName + ".");
+            Log("Creating file " + fileName);
             writeToAWS(fileName, "[]");
         } else {
             try {
                 savedCardlist = JSON.parse(Buffer.from(ret).toString());
-                Log("Successfully read file " + fileName + ".");
+                Log("Successfully read file " + fileName);
             } catch(error) {
-                Log("Something went wrong with parsing data from existing saved file.");
+                Log("ERROR: Something went wrong with parsing data from existing saved file");
                 Log('ERROR: ' + error);
             }
         }
@@ -330,7 +330,7 @@ async function getAllCards(set, channelID, verbose = false) {
                 try {
                     cardlist = JSON.parse(data);
                 } catch(error) {
-                   Log("Something went wrong with parsing data from Scryfall.");
+                    Log("ERROR: Something went wrong with parsing data from Scryfall");
                     Log('ERROR:' + error);
                     return;
                 }
@@ -351,12 +351,12 @@ async function getAllCards(set, channelID, verbose = false) {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
                         var interval = setInterval(function(cards) {
                             if (cards.length <= 0) {
-                                Log('Done with sending cards to channel.');
+                                Log('Done with sending cards to channel');
                                 clearInterval(interval);
                             } else {
                                 let card = cards.pop();
                                 var embed = generateEmbed(card, true);
-                                Log('Sending ' + card.name + ' to channel.');
+                                Log('Sending ' + card.name + ' to channel');
                                 channel.send('', {embed});
                             }
                         }, 1000, newCardlist);
@@ -365,13 +365,14 @@ async function getAllCards(set, channelID, verbose = false) {
                             let savedCardlistJSON = JSON.stringify(savedCardlist);
                             writeToAWS(fileName, savedCardlistJSON);
                         } catch(error) {
-                            Log("Something went wrong with saving new data.");
+                            Log("ERROR: Something went wrong with saving new data");
                             Log("ERROR: " + error);
                             return;
                         }
                     }
                 } else {
-                    if (verbose) channel.send('Did not find any card with set code ' + set + '.');
+                    Log('Did not find any cards with set code ' + set);
+                    if (verbose) channel.send('Did not find any cards with set code ' + set + '.');
                 }
             });
         }).on("error", (err) => {
@@ -392,7 +393,7 @@ function readWatchedSets() {
         let watchedSetcodes = [];
         if (ret) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
-            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+            Log("Successfully read file " + WATCHEDSETCODESPATH);
         }
         for (var i = 0; i < watchedSetcodes.length; i++) {
             var watchedSet = watchedSetcodes[i];
@@ -414,7 +415,7 @@ function startSpoilerWatch(set, channelID, verbose = false) {
         let watchedSetcodes = [];
         if (ret) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
-            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+            Log("Successfully read file " + WATCHEDSETCODESPATH);
         }
         watchedSetcodes.push({"setCode":set, "channelID":channelID});
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
@@ -428,7 +429,7 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
         let watchedSetcodes = [];
         if (ret) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
-            Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
+            Log("Successfully read file " + WATCHEDSETCODESPATH);
         }
         let found = false;
         watchedSetcodes.forEach(function(watchedset) {
@@ -459,11 +460,11 @@ function clearAllCards(set, channelID, verbose = false) {
     let fileName = getFilename(set, channelID);
     try {
         writeToAWS(fileName, "[]");
-        Log("Successfully cleared file " + fileName + ".");
+        Log("Successfully cleared file " + fileName);
         if (verbose) channel.send("Successfully cleared file for set with code " + set + ".");
     } catch(error) {
         if (verbose) channel.send("Something went wrong with clearing file for set with code " + set + ".");
-        Log("Something went wrong with clearing file for set with code " + set + ".");
+        Log("ERROR: Something went wrong with clearing file for set with code " + set);
         Log('ERROR: ' + error);
     }
 }
