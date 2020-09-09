@@ -442,7 +442,7 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             let filteredWatchedSetcodes = []
             watchedSetcodes.forEach(function(watchedset) {
                 if (watchedset.setCode != set || watchedset.channelID != channelID) {
-                    result.push(filteredWatchedSetcodes);
+                    filteredWatchedSetcodes.push(filteredWatchedSetcodes);
                 }
             });
             watchedSetcodes = filteredWatchedSetcodes;
