@@ -229,21 +229,21 @@ function generateEmbed(card, hasEmojiPermission) {
         title += ' ' + card.mana_cost;
     }
     
-    if (card.layout === 'transform' && card.card_faces) {
-        if (card.card_faces[0].mana_cost) {
-            title += ' ' + card.card_faces[0].mana_cost;
+    if (card.card_faces) {
+        if (card.layout === 'transform') {
+            if (card.card_faces[0].mana_cost) {
+                title += ' ' + card.card_faces[0].mana_cost;
+            }
+            card.image_uris = card.card_faces[0].image_uris;
+        } else if (card.layout === 'modal_dfc') {
+            if (card.card_faces[0].mana_cost) {
+                title += ' ' + card.card_faces[0].mana_cost;
+            }
+            if (card.card_faces[1].mana_cost) {
+                title += ' // ' + card.card_faces[1].mana_cost;
+            }
+            card.image_uris = card.card_faces[0].image_uris;
         }
-        card.image_uris = card.card_faces[0].image_uris;
-    }
-    
-    if (card.layout === 'modal_dfc' && card.card_faces) {
-        if (card.card_faces[0].mana_cost) {
-            title += ' ' + card.card_faces[0].mana_cost;
-        }
-        if (card.card_faces[1].mana_cost) {
-            title += ' // ' + card.card_faces[1].mana_cost;
-        }
-        card.image_uris = card.card_faces[0].image_uris;
     }
     
     let description = generateDescriptionText(card);
@@ -256,7 +256,7 @@ function generateEmbed(card, hasEmojiPermission) {
         title,
         description,
         url: card.scryfall_uri,
-        color: getBorderColor(card.layout === 'transform' ? card.card_faces[0]:card),
+        color: getBorderColor(card.layout === 'transform' || card.layout === 'modal_dfc' ? card.card_faces[0]:card),
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
         image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
     });
