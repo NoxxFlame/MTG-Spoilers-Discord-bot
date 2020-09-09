@@ -236,6 +236,16 @@ function generateEmbed(card, hasEmojiPermission) {
         card.image_uris = card.card_faces[0].image_uris;
     }
     
+    if (card.layout === 'modal_dfc' && card.card_faces) {
+        if (card.card_faces[0].mana_cost) {
+            title += ' ' + card.card_faces[0].mana_cost;
+        }
+        if (card.card_faces[1].mana_cost) {
+            title += ' // ' + card.card_faces[1].mana_cost;
+        }
+        card.image_uris = card.card_faces[0].image_uris;
+    }
+    
     let description = generateDescriptionText(card);
     if(hasEmojiPermission) {
         title = _.truncate(renderEmojis(title), {length: 256, separator: '<'});
@@ -420,14 +430,17 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         }
+        console.log(watchedSetcodes);
         if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
             watchedset.setCode == set && watchedset.channelID == channelID
         })) {
+            console.log(watchedSetcodes);
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Stopping spoilerwatch for set ' + set + '.');
             watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
                 watchedset.setCode != set || watchedset.channelID != channelID
             });
+            console.log(watchedSetcodes);
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Could not stop spoilerwatch for set ' + set + '.');
