@@ -304,7 +304,7 @@ async function getAllCards(set, channelID, verbose = false) {
     readFromAWS(fileName, function(ret) {
         let savedCardlist = JSON.parse("[]");
         if (ret == false) {
-            Log("Cannot find file " + fileName + ".");
+            Log("Creating file " + fileName + ".");
             writeToAWS(fileName, "[]");
         } else {
             try {
@@ -430,17 +430,22 @@ function stopSpoilerWatch(set, channelID, verbose = false) {
             watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
             Log("Successfully read file " + WATCHEDSETCODESPATH + ".");
         }
-        console.log(watchedSetcodes);
-        if (watchedSetcodes && watchedSetcodes.filter(function (watchedset) {
-            watchedset.setCode == set && watchedset.channelID == channelID
-        })) {
-            console.log(watchedSetcodes);
+        let found = false;
+        watchedSetcodes.forEach(function(watchedset) {
+            if (watchedset.setCode == set && watchedset.channelID == channelID) {
+                found = true;
+            }
+        });
+        if (found) {
             Log('Stopping looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Stopping spoilerwatch for set ' + set + '.');
-            watchedSetcodes = watchedSetcodes.filter(function(watchedset) {
-                watchedset.setCode != set || watchedset.channelID != channelID
+            let filteredWatchedSetcodes = []
+            watchedSetcodes.forEach(function(watchedset) {
+                if (watchedset.setCode != set || watchedset.channelID != channelID) {
+                    result.push(filteredWatchedSetcodes);
+                }
             });
-            console.log(watchedSetcodes);
+            watchedSetcodes = filteredWatchedSetcodes;
         } else {
             Log('Could not stop looking for new cards in set ' + set + ' for channel ' + channelID)
             if (verbose) channel.send('Could not stop spoilerwatch for set ' + set + '.');
