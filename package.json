@@ -4,6 +4,9 @@
     "description": "A bot to automatically post spoilers for Magic the Gathering in Discord",
     "main": "bot.js",
     "author": "NoxxFlame",
+    "engines": {
+        "node": "12.x"
+    },
     "dependencies": {
         "discord.js": "^12.2.0",
         "aws-sdk": "^2.691.0",
