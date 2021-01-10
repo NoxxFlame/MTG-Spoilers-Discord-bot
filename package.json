@@ -4,8 +4,15 @@
     "description": "A bot to automatically post spoilers for Magic the Gathering in Discord",
     "main": "bot.js",
     "author": "NoxxFlame",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/NoxxFlame/MTG-Spoilers-Discord-bot"
+    },
     "engines": {
         "node": "12.x"
+    },
+    {
+        "license" : "MIT license" 
     },
     "dependencies": {
         "discord.js": "^12.2.0",
