@@ -114,7 +114,7 @@ bot.on('message', async message => {
             var args = message.content.substring(1).split(' ');
             var cmd = args[0];
             args = args.splice(1);
-            let set = args[0];
+            let set = args[0].toUpperCase();
             switch(cmd.toLowerCase()) {
                 case 'getall':
                     if (message.member.hasPermission("MANAGE_MESSAGES")) getAllCards(set, message.channel.id, true);
