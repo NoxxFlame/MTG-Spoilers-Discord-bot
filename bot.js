@@ -127,22 +127,22 @@ bot.on('messageCreate', async message => {
             let set = args[0].toUpperCase();
             switch(cmd.toLowerCase()) {
                 case 'getall':
-                    if (message.member.hasPermission("MANAGE_MESSAGES")) getAllCards(set, message.channel.id, true);
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) getAllCards(set, message.channel.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
 
                 case 'watch':
-                    if (message.member.hasPermission("MANAGE_MESSAGES")) startSpoilerWatch(set, message.channel.id, true);
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) startSpoilerWatch(set, message.channel.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
 
                 case 'unwatch':
-                    if (message.member.hasPermission("MANAGE_MESSAGES")) stopSpoilerWatch(set, message.channel.id, true);
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) stopSpoilerWatch(set, message.channel.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
 
                 case 'clear':
-                    if (message.member.hasPermission("MANAGE_MESSAGES")) clearAllCards(set, message.channel.id, true);
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) clearAllCards(set, message.channel.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
             }
