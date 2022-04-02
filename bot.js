@@ -95,7 +95,7 @@ const s3 = new aws.S3({
 
 // Initialize discord Bot
 Log('Initializing bot...');
-var bot = new discord.Client();
+var bot = new discord.Client({ intents: [discord.FLAGS.GUILDS, discord.FLAGS.GUILD_MESSAGES]});
 
 try {
     bot.login(process.env.DISCORD_TOKEN);
