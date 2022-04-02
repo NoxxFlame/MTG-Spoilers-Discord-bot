@@ -256,14 +256,14 @@ function generateEmbed(card, hasEmojiPermission) {
         description = renderEmojis(description);
     }
     
-    const embed = new discord.MessageEmbed({
+    const embed = {
         title,
         description,
         url: card.scryfall_uri,
         color: getBorderColor(card.layout === 'transform' || card.layout === 'modal_dfc' ? card.card_faces[0]:card),
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
         image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
-    });
+    };
     
     return embed;
 }
@@ -361,7 +361,7 @@ async function getAllCards(set, channelID, verbose = false) {
                                 let card = cards.pop();
                                 var embed = generateEmbed(card, true);
                                 Log('Sending ' + card.name + ' to channel');
-                                channel.send('', {embed});
+                                channel.send({embeds: [embed]});
                             }
                         }, 1000, newCardlist);
 
