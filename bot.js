@@ -70,8 +70,14 @@ const manamojis = {
     "2r":"2r_:719748810645045249",
     "2g":"2g_:719748810728931338",
     "x":"x_:719748812830277692",
+    "y":"x_:719748812830277692",
+    "z":"x_:719748812830277692",
     "t":"t_:719748812695928953",
-    "s":"s_:797971079296450620"
+    "q":"t_:719748812695928953",
+    "s":"s_:797971079296450620",
+    "e":"t_:719748812695928953",
+    "a":"t_:719748812695928953",
+    "chaos":"t_:719748812695928953"
 };
 
 // Colors for discord card embed
@@ -143,6 +149,11 @@ bot.on('messageCreate', async message => {
 
                 case 'clear':
                     if (message.member.permissions.has("MANAGE_MESSAGES")) clearAllCards(set, message.channel.id, true);
+                    else message.channel.send("You do not have permission to use that command.");
+                break;
+
+                case 'getemojis':
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) getEmojiIDs(message.guild.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
             }
@@ -463,6 +474,20 @@ function clearAllCards(set, channelID, verbose = false) {
     } catch(error) {
         if (verbose) channel.send("Something went wrong with clearing file for set with code " + set + ".");
         Log("ERROR: Something went wrong with clearing file for set with code " + set);
+        Log('ERROR: ' + error);
+    }
+}
+
+function getEmojiIDs(guildID, verbose = false) {
+        try {
+        const guild = bot.guilds.cache.get(guildID);
+        guild.emojis.cache.forEach(function(emoji) {
+            if (verbose) channel.send("<:" + emoji.name + ":" + emoji.id + ">" + " - " + emoji.name + ":" + emoji.id)
+            Log(emoji.name + ":" + emoji.id)
+        });
+    } catch(error) {
+        if (verbose) channel.send("Something went wrong while gathering emoji IDs.");
+        Log("ERROR: Something went wrong while gathering emoji IDs");
         Log('ERROR: ' + error);
     }
 }
