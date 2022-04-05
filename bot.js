@@ -153,7 +153,7 @@ bot.on('messageCreate', async message => {
                 break;
 
                 case 'getemojis':
-                    if (message.member.permissions.has("MANAGE_MESSAGES")) getEmojiIDs(message.guild.id, true);
+                    if (message.member.permissions.has("MANAGE_MESSAGES")) getEmojiIDs(message.guild.id, message.channel.id, true);
                     else message.channel.send("You do not have permission to use that command.");
                 break;
             }
@@ -478,9 +478,10 @@ function clearAllCards(set, channelID, verbose = false) {
     }
 }
 
-function getEmojiIDs(guildID, verbose = false) {
-        try {
-        const guild = bot.guilds.cache.get(guildID);
+function getEmojiIDs(guildID, channelID, verbose = false) {
+    const guild = bot.guilds.cache.get(guildID);
+    const channel = bot.channels.cache.get(channelID);
+    try {
         guild.emojis.cache.forEach(function(emoji) {
             if (verbose) channel.send("<:" + emoji.name + ":" + emoji.id + ">" + " - " + emoji.name + ":" + emoji.id)
             Log(emoji.name + ":" + emoji.id)
