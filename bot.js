@@ -257,7 +257,11 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
     let channel = bot.channels.cache.get(channelID);
     if (threadParentID) {
         let threadParent = bot.channels.cache.get(threadParentID);
-        channel = threadParent.threads.cache.get(channelID)
+        channel = threadParent.threads.cache.get(channelID);
+        if (!channel) {
+            let archivedThreads = await threadParent.threads.fetchArchived();
+            channel = archivedThreads.threads.get(id)
+        }
     }  
 
     // Read which cards are already saved
