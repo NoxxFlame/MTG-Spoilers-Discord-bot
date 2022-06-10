@@ -474,6 +474,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                         if (cardlist.data[card].frame_effects.includes("showcase")) continue;
                         if (cardlist.data[card].frame_effects.includes("extendedart")) continue;
                         if (cardlist.data[card].frame_effects.includes("etched")) continue;
+			if (cardlist.data[card].frame_effects.includes("inverted")) continue;
                     }
                     if (cardlist.data[card].security_stamp) { // Ignore universes beyond
                         if (cardlist.data[card].security_stamp == "triangle") continue;
