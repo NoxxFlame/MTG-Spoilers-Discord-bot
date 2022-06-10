@@ -603,7 +603,7 @@ function getCard(query, message, verbose = false) {
     const channelID = message.channel.id;
     const channel = bot.channels.cache.get(channelID);
     const cardQuery = query.toLowerCase();
-    https.get('https://api.scryfall.com/cards/search?order=name&q=' + encodeURIComponent(query + ' include:extras') + '&unique=prints', (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=name&q=' + encodeURIComponent(query + ' include:extras'), (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
@@ -621,41 +621,46 @@ function getCard(query, message, verbose = false) {
             }
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                Log(cardlist.total_cards + ' cards were found that matched the query ' + query);
-                let oracleIDs = [];
-                let options = [];
-                for (let card in cardlist.data) {
-                    if (cardlist.data[card].object != "card") continue;
-                    if (cardlist.data[card].lang != "en") continue;
-                    if (cardlist.data[card].layout == "art_series") continue;
-                    if (cardlist.data[card].name.substring(0,2) == "A-") continue;
-                    if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
-                    oracleIDs.push(cardlist.data[card].oracle_id);
-                    options.push({
-                        "label":cardlist.data[card].name,
-                        "value":cardlist.data[card].oracle_id,
-                        "description":cardlist.data[card].type_line,
-                        "emoji":getColourIDEmoji(cardlist.data[card])
-                    });
-                }
-
-                if (oracleIDs.length == 1) {
-                    getBestCard(query, oracleIDs[0], channel)
-                } else if (oracleIDs.length > 25) {
-                    Log('More than 25 cards found for query ' + query);
+                if (cardlist.has_more) {
+                    Log('Too many cards matching query ' + query);
                     if (verbose) channel.send('More than 25 cards found that matched the query: ' + query + '. Please refine your search and try again.');
-                } else if (oracleIDs.length > 1) {
-                    let row = new MessageActionRow()
-                        .addComponents(
-                            new MessageSelectMenu()
-                                .setCustomId('cardSelect')
-                                .setPlaceholder('Please select a card')
-                                .addOptions(options)
-                        );
-                    channel.send({"content":"Multiple cards found that match the query: "+query,"components":[row]})
                 } else {
-                    Log('Did not find any cards that matched the query ' + query);
-                    if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
+                    Log(cardlist.total_cards + ' cards were found that matched the query ' + query);
+                    let oracleIDs = [];
+                    let options = [];
+                    for (let card in cardlist.data) {
+                        if (cardlist.data[card].object != "card") continue;
+                        if (cardlist.data[card].lang != "en") continue;
+                        if (cardlist.data[card].layout == "art_series") continue;
+                        if (cardlist.data[card].name.substring(0,2) == "A-") continue;
+                        if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
+                        oracleIDs.push(cardlist.data[card].oracle_id);
+                        options.push({
+                            "label":cardlist.data[card].name,
+                            "value":cardlist.data[card].oracle_id,
+                            "description":cardlist.data[card].type_line,
+                            "emoji":getColourIDEmoji(cardlist.data[card])
+                        });
+                    }
+
+                    if (oracleIDs.length == 1) {
+                        getBestCard(query, oracleIDs[0], channel)
+                    } else if (oracleIDs.length > 25) {
+                        Log('More than 25 cards found for query ' + query);
+                        if (verbose) channel.send('More than 25 cards found that matched the query: ' + query + '. Please refine your search and try again.');
+                    } else if (oracleIDs.length > 1) {
+                        let row = new MessageActionRow()
+                            .addComponents(
+                                new MessageSelectMenu()
+                                    .setCustomId('cardSelect')
+                                    .setPlaceholder('Please select a card')
+                                    .addOptions(options)
+                            );
+                        channel.send({"content":"Multiple cards found that match the query: "+query,"components":[row]})
+                    } else {
+                        Log('Did not find any cards that matched the query ' + query);
+                        if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
+                    }
                 }
             } else {
                 Log('Did not find any cards that matched the query ' + query);
