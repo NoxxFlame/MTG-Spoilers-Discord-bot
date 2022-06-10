@@ -531,12 +531,12 @@ function getCard(query, message, verbose = false) {
                 let oracleIDs = [];
                 let options = [];
                 for (let card in cardlist) {
-                    console.log(cardlist[card]);
                     if (cardlist[card].object != "card") continue;
                     if (oracleIDs.includes(cardlist[card].oracle_id)) continue;
                     oracleIDs.push(cardlist[card].oracle_id);
                     options.push({"label":cardlist[card].name,"value":cardlist[card].oracle_id});
                 }
+                console.log(options);
 
                 if (oracleIDs.length == 1) {
                     getBestCard(query, options[0], channel)
