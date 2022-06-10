@@ -461,7 +461,7 @@ function getBestCard(oracleID, channel) {
             }
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                Log(cardlist.length + ' cards were found with oracle ID ' + oracleID);
+                Log(cardlist.total_cards + ' cards were found with oracle ID ' + oracleID);
                 for (let card in cardlist) { // First look for cards with prices matching restrictions
                     if (cardlist[card].object != "card") continue;
                     if (!cardlist[card].prices.usd) continue; // Ignore cards without prices
@@ -520,7 +520,6 @@ function getCard(query, message, verbose = false) {
             let cardlist;
             try {
                 cardlist = JSON.parse(data);
-                console.log(cardlist);
             } catch(error) {
                 Log("ERROR: Something went wrong with parsing data from Scryfall");
                 Log('ERROR:' + error);
@@ -528,10 +527,11 @@ function getCard(query, message, verbose = false) {
             }
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                Log(cardlist.length + ' cards were found that matched the query ' + query);
+                Log(cardlist.total_cards + ' cards were found that matched the query ' + query);
                 let oracleIDs = [];
                 let options = [];
                 for (let card in cardlist) {
+                    console.log(cardlist[card]);
                     if (cardlist[card].object != "card") continue;
                     if (oracleIDs.includes(cardlist[card].oracle_id)) continue;
                     oracleIDs.push(cardlist[card].oracle_id);
