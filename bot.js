@@ -539,7 +539,7 @@ function getCard(query, message, verbose = false) {
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
                     oracleIDs.push(cardlist.data[card].oracle_id);
-                    options.push({"label":cardlist.data[card].name,"value":cardlist.data[card].oracle_id});
+                    options.push({"label":cardlist.data[card].name,"value":cardlist.data[card].oracle_id,"description":cardlist.data[card].type_line});
                 }
 
                 if (oracleIDs.length == 1) {
