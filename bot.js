@@ -511,6 +511,57 @@ function getBestCard(query, oracleID, channel, interaction = false) {
     });
 }
 
+function getColourIDEmoji(card) {
+    let colours = card.color_identity;
+    if (card.type_line.includes("Land")) {
+        return {"name":"colourland","id":"984681692398759996"};
+    } else if (colours.length == 0) {
+        return {"name":"colourcolorless","id":"984681627932307456"};
+    } else if (colours.length == 1) {
+        switch (colours[0]) {
+            case "W":
+                return {"name":"colourwhite","id":"984681761495740456"};
+                break;
+            case "U":
+                return {"name":"colourblue","id":"984681606776254504"};
+                break;
+            case "B":
+                return {"name":"colourblack","id":"984681594059112508"};
+                break;
+            case "R":
+                return {"name":"colourred","id":"984681731837820948"};
+                break;
+            case "G":
+                return {"name":"colourgreen","id":"984681659888721920"};
+                break;
+        }
+    } else if (colours.length == 2) {
+        if (colours.includes("W") && colours.includes("U")) {
+            return {"name":"colourazorius","id":"984681584185724988"};
+        } else if (colours.includes("W") && colours.includes("B")) {
+            return {"name":"colourorzhov","id":"984681711365423134"};
+        } else if (colours.includes("U") && colours.includes("B")) {
+            return {"name":"colourdimir","id":"984681639089143818"};
+        } else if (colours.includes("U") && colours.includes("R")) {
+            return {"name":"colourizzet","id":"984681682458247188"};
+        } else if (colours.includes("B") && colours.includes("R")) {
+            return {"name":"colourrakdos","id":"984681721209450557"};
+        } else if (colours.includes("B") && colours.includes("G")) {
+            return {"name":"colourgolgari","id":"984681649155498054"};
+        } else if (colours.includes("R") && colours.includes("G")) {
+            return {"name":"colourgruul","id":"984681670307356672"};
+        } else if (colours.includes("R") && colours.includes("W")) {
+            return {"name":"colourboros","id":"984681618369314896"};
+        } else if (colours.includes("G") && colours.includes("W")) {
+            return {"name":"colourselesnya","id":"984681741954478180"};
+        } else if (colours.includes("G") && colours.includes("U")) {
+            return {"name":"coloursimic","id":"984681752125653032"};
+        }
+    } else {
+        return {"name":"colourmulticolor","id":"984681701949181952"};
+    }
+}
+
 function getCard(query, message, verbose = false) {
     if (!query) return;
     const channelID = message.channel.id;
@@ -543,7 +594,12 @@ function getCard(query, message, verbose = false) {
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
                     oracleIDs.push(cardlist.data[card].oracle_id);
-                    options.push({"label":cardlist.data[card].name,"value":cardlist.data[card].oracle_id,"description":cardlist.data[card].type_line});
+                    options.push({
+                        "label":cardlist.data[card].name,
+                        "value":cardlist.data[card].oracle_id,
+                        "description":cardlist.data[card].type_line,
+                        "emoji":getColourIDEmoji(cardlist.data[card])
+                    });
                 }
 
                 if (oracleIDs.length == 1) {
