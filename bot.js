@@ -307,7 +307,7 @@ async function getAllCards(set, channelID, verbose = false) {
                     } else {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
 
-                        if (channel.isThread() && channel.archived) {
+                        if (channel.archived) {
                             channel.setArchived(false);
                             Log("Unarchiving thread with ID " + channelID);
                         }
