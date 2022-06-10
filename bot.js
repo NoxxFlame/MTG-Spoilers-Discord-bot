@@ -382,7 +382,7 @@ function readWatchedSets() {
             var watchedSet = watchedSetcodes[i];
             Log('Watched set: ' + watchedSet.setCode + ' on channel ' + watchedSet.channelID);
             Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID);
-            getAllCards(watchedSet.setCode, watchedSet.channelID, watchedSet.threadParentID);
+            getAllCards(watchedSet.setCode, watchedSet.channelID, false, watchedSet.threadParentID);
         }
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
     });
@@ -399,7 +399,7 @@ function startSpoilerWatch(set, message, verbose = false) {
         }
         Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
         if (verbose) channel.send('Starting spoilerwatch for set ' + set + '.');
-        getAllCards(set, channelID, threadParentID);
+        getAllCards(set, channelID, false, threadParentID);
         readFromAWS(WATCHEDSETCODESPATH, function(ret) {
             let watchedSetcodes = [];
             if (ret) {
