@@ -1,5 +1,4 @@
 const discord = require('discord.js');
-const { MessageActionRow, MessageSelectMenu } = require('discord.js');
 const aws = require('aws-sdk');
 const _ = require("lodash");
 const https = require('https');
@@ -195,14 +194,14 @@ function generateEmbed(card, hasEmojiPermission) {
         description = renderEmojis(description);
     }
     
-    const embed = {
+    const embed = new Discord.MessageEmbed({
         title,
         description,
         url: card.scryfall_uri,
         color: getBorderColor(card.layout === 'transform' || card.layout === 'modal_dfc' ? card.card_faces[0]:card),
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
         image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
-    };
+    });
 
     if (card.prices.usd) {
         embed.addField('Prices', '$' + card.prices.usd);
@@ -552,9 +551,9 @@ function getCard(query, message, verbose = false) {
                 if (oracleIDs.length == 1) {
                     getBestCard(query, options[0], channel)
                 } else if (oracleIDs.length > 1) {
-                    let row = new MessageActionRow()
+                    let row = new discord.MessageActionRow()
                         .addComponents(
-                            new MessageSelectMenu()
+                            new discord.MessageSelectMenu()
                                 .setCustomId('cardSelect')
                                 .setPlaceholder('Please select a card')
                                 .addOptions(options)
