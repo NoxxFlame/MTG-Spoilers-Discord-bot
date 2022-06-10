@@ -195,7 +195,7 @@ function generateEmbed(card, hasEmojiPermission) {
         description = renderEmojis(description);
     }
     
-    const embed = new Discord.MessageEmbed({
+    const embed = new discord.MessageEmbed({
         title,
         description,
         url: card.scryfall_uri,
