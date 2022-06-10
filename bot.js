@@ -544,6 +544,9 @@ function getCard(query, message, verbose = false) {
 
                 if (oracleIDs.length == 1) {
                     getBestCard(query, oracleIDs[0], channel)
+                } else if (oracleIDs.length > 25) {
+                    Log('More than 25 cards found for query ' + query);
+                    if (verbose) channel.send('More than 25 cards found that matched the query: ' + query + '. Please refine your search and try again.');
                 } else if (oracleIDs.length > 1) {
                     let row = new MessageActionRow()
                         .addComponents(
