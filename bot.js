@@ -592,6 +592,7 @@ function getCard(query, message, verbose = false) {
                     if (cardlist.data[card].object != "card") continue;
                     if (cardlist.data[card].lang != "en") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
+                    if (cardlist.data[card].name.substring(0,2) == "A-") continue;
                     if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
                     oracleIDs.push(cardlist.data[card].oracle_id);
                     options.push({
