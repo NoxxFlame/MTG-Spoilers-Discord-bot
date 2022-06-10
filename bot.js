@@ -143,6 +143,12 @@ function generateDescriptionText(card) {
             description.push('');
         });
     }
+
+    if (card.prices.usd) {
+        description.push('\n**Price: $' + card.prices.usd + '**');
+    } else {
+        description.push('\n**No prices found**');
+    }
     
     return description.join('\n');
 }
@@ -203,12 +209,6 @@ function generateEmbed(card, hasEmojiPermission) {
         thumbnail: card.image_uris ? {url: card.image_uris.small} : null,
         image: card.zoom && card.image_uris ? {url: card.image_uris.normal} : null
     });
-
-    if (card.prices.usd) {
-        embed.addField('Prices', '$' + card.prices.usd);
-    } else {
-        embed.addField('Prices', 'No prices found');
-    }
     
     return embed;
 }
@@ -477,11 +477,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                         if (cardlist.data[card].security_stamp == "triangle") continue;
                     }
                     var embed = generateEmbed(cardlist.data[card], true);
-                    if (interaction) {
-                        interaction.followUp({embeds: [embed]});
-                    } else {
-                        channel.send({embeds: [embed]});
-                    }
+                    channel.send({embeds: [embed]});
                     return;
                 }
 
@@ -490,11 +486,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
                     var embed = generateEmbed(cardlist.data[card], true);
-                    if (interaction) {
-                        interaction.followUp({embeds: [embed]});
-                    } else {
-                        channel.send({embeds: [embed]});
-                    }
+                    channel.send({embeds: [embed]});
                     return;
                 }
 
@@ -502,11 +494,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                     if (cardlist.data[card].object != "card") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
                     var embed = generateEmbed(cardlist.data[card], true);
-                    if (interaction) {
-                        interaction.followUp({embeds: [embed]});
-                    } else {
-                        channel.send({embeds: [embed]});
-                    }
+                    channel.send({embeds: [embed]});
                     return;
                 }
             } else {
@@ -659,7 +647,8 @@ bot.on('interactionCreate', async interaction => {
 	if (!interaction.isSelectMenu()) return;
 
 	if (interaction.customId === 'cardSelect') {
-		getBestCard(interaction.message.content.substring(43), interaction.values[0], interaction.channel, interaction)
+        await interaction.deferUpdate();
+		getBestCard(interaction.message.content.substring(43), interaction.values[0], interaction.channel)
 	}
 });
 
