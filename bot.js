@@ -399,7 +399,7 @@ function startSpoilerWatch(set, message, verbose = false) {
         }
         Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
         if (verbose) channel.send('Starting spoilerwatch for set ' + set + '.');
-        getAllCards(set, channelID);
+        getAllCards(set, channelID, threadParentID);
         readFromAWS(WATCHEDSETCODESPATH, function(ret) {
             let watchedSetcodes = [];
             if (ret) {
