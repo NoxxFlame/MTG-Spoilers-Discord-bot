@@ -556,10 +556,10 @@ function getCard(query, message, verbose = false) {
                         .addComponents(
                             new MessageSelectMenu()
                                 .setCustomId('cardSelect')
-                                .setPlaceholder('Select a card')
+                                .setPlaceholder('Please select a card')
                                 .addOptions(options)
                         );
-                    channel.send({"content":"Multiple cards found. Please select a card that matches the query: "+query,"components":[row]})
+                    channel.send({"content":"Multiple cards found that match the query: "+query,"components":[row]})
                 }
             } else {
                 Log('Did not find any cards that matched the query ' + query);
@@ -652,7 +652,7 @@ bot.on('interactionCreate', async interaction => {
 	if (!interaction.isSelectMenu()) return;
 
 	if (interaction.customId === 'cardSelect') {
-		getBestCard(interaction.message.content.substring(67), interaction.values, interaction.channel, interaction)
+		getBestCard(interaction.message.content.substring(43), interaction.values, interaction.channel, interaction)
 	}
 });
 
