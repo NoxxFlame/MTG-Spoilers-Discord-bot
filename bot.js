@@ -468,6 +468,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                     if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
                     if (cardlist.data[card].frame == "1997" && parseInt(cardlist.data[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
                     if (cardlist.data[card].set == "sld") continue; // Ignore secret lairs
+                    if (cardlist.data[card].border_color == "borderless") continue; // Ignore borderless
                     if (cardlist.data[card].frame_effects) { // Ignore other showcase frames
                         if (cardlist.data[card].frame_effects.includes("showcase")) continue;
                         if (cardlist.data[card].frame_effects.includes("extendedart")) continue;
