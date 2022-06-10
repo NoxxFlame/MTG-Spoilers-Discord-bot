@@ -513,7 +513,7 @@ function getCard(query, message, verbose = false) {
     const channelID = message.channel.id;
     const channel = bot.channels.cache.get(channelID);
     const cardQuery = query.toLowerCase();
-    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + ' include:extras') + '&unique=prints', (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=name&q=' + encodeURIComponent(query + ' include:extras') + '&unique=prints', (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
