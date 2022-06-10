@@ -213,6 +213,13 @@ function generateEmbed(card, hasEmojiPermission) {
     return embed;
 }
     
+function Log(message) {
+    var today = new Date();
+    console.log(today.toLocaleString("en-GB", {timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit'})
+                + ' ' + today.toLocaleString("en-US", {timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit'})
+                + " - " + message);
+}
+
 // Read a file from AWS
 function readFromAWS(filename, func) {
     var params = {
@@ -243,13 +250,6 @@ function writeToAWS(filename, data) {
     s3.upload(params, options, function(err, data) {
         if (err) Log("ERROR: " + err);
     });
-}
-
-function Log(message) {
-    var today = new Date();
-    console.log(today.toLocaleString("en-GB", {timeZone: 'Australia/Melbourne', year: 'numeric', month: '2-digit', day: '2-digit'})
-                + ' ' + today.toLocaleString("en-US", {timeZone: 'Australia/Melbourne', hour: '2-digit', minute: '2-digit'})
-                + " - " + message);
 }
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
@@ -520,6 +520,7 @@ function getCard(query, message, verbose = false) {
             let cardlist;
             try {
                 cardlist = JSON.parse(data);
+                console.log(cardlist);
             } catch(error) {
                 Log("ERROR: Something went wrong with parsing data from Scryfall");
                 Log('ERROR:' + error);
