@@ -255,6 +255,7 @@ function writeToAWS(filename, data) {
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
 async function getAllCards(set, channelID, verbose = false) {
     const channel = bot.channels.cache.get(channelID);
+
     // Read which cards are already saved
     let fileName = getFilename(set, channelID);
     readFromAWS(fileName, function(ret) {
@@ -305,6 +306,12 @@ async function getAllCards(set, channelID, verbose = false) {
                         if (verbose) bot.channels.cache.get(channelID).send('No new cards were found with set code ' + set + '.');
                     } else {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
+
+                        if (channel.isThread() && channel.archived) {
+                            channel.setArchived(false);
+                            Log("Unarchiving thread with ID " + channelID);
+                        }
+
                         var interval = setInterval(function(cards) {
                             if (cards.length <= 0) {
                                 Log('Done with sending cards to channel');
