@@ -469,9 +469,9 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                     if (cardlist.data[card].frame == "1997" && parseInt(cardlist.data[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
                     if (cardlist.data[card].set == "sld") continue; // Ignore secret lairs
                     if (cardlist.data[card].frame_effects) { // Ignore other showcase frames
-                        if (cardlist[card].frame_effects.includes("showcase")) continue;
-                        if (cardlist[card].frame_effects.includes("extendedart")) continue;
-                        if (cardlist[card].frame_effects.includes("etched")) continue;
+                        if (cardlist.data[card].frame_effects.includes("showcase")) continue;
+                        if (cardlist.data[card].frame_effects.includes("extendedart")) continue;
+                        if (cardlist.data[card].frame_effects.includes("etched")) continue;
                     }
                     if (cardlist.data[card].security_stamp) { // Ignore universes beyond
                         if (cardlist.data[card].security_stamp == "triangle") continue;
