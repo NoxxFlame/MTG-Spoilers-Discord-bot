@@ -629,7 +629,7 @@ bot.on('messageCreate', async message => {
         queries.forEach(query => {
             const command = query.trim().split(" ")[0].substr(commandChar.length).toLowerCase();
             const parameter = query.trim().split(" ").slice(1).join(" ").replace(new RegExp(charPattern + '[^a-z0-9]?$', 'i'), '');
-            const ret = commands[command].handler(command, parameter, true);
+            const ret = commands[command].handler(parameter, message, true);
             Promise.resolve(ret).catch(e => Log('ERROR: An error occured while handling', message.content, ":", e.message));
         });
     }
