@@ -442,7 +442,7 @@ function clearAllCards(set, message, verbose = false) {
     }
 }
 
-function getBestCard(oracleID, channel) {
+function getBestCard(query, oracleID, channel, interaction = false) {
     https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', (resp) => {
         let data = '';
 
@@ -476,7 +476,11 @@ function getBestCard(oracleID, channel) {
                         if (cardlist.data[card].security_stamp == "triangle") continue;
                     }
                     var embed = generateEmbed(cardlist.data[card], true);
-                    channel.send({embeds: [embed]});
+                    if (interaction) {
+                        interaction.followUp({embeds: [embed]});
+                    } else {
+                        channel.send({embeds: [embed]});
+                    }
                     return;
                 }
 
@@ -484,14 +488,22 @@ function getBestCard(oracleID, channel) {
                     if (cardlist.data[card].object != "card") continue;
                     if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
                     var embed = generateEmbed(cardlist.data[card], true);
-                    channel.send({embeds: [embed]});
+                    if (interaction) {
+                        interaction.followUp({embeds: [embed]});
+                    } else {
+                        channel.send({embeds: [embed]});
+                    }
                     return;
                 }
 
                 for (let card in cardlist.data) { // Finally find cards without prices
                     if (cardlist.data[card].object != "card") continue;
                     var embed = generateEmbed(cardlist.data[card], true);
-                    channel.send({embeds: [embed]});
+                    if (interaction) {
+                        interaction.followUp({embeds: [embed]});
+                    } else {
+                        channel.send({embeds: [embed]});
+                    }
                     return;
                 }
             } else {
@@ -640,7 +652,7 @@ bot.on('interactionCreate', async interaction => {
 	if (!interaction.isSelectMenu()) return;
 
 	if (interaction.customId === 'cardSelect') {
-		getBestCard(interaction.message.content.substring(67), interaction.values, interaction.channel)
+		getBestCard(interaction.message.content.substring(67), interaction.values, interaction.channel, interaction)
 	}
 });
 
