@@ -1,4 +1,5 @@
 const discord = require('discord.js');
+const { MessageActionRow, MessageSelectMenu } = require('discord.js');
 const aws = require('aws-sdk');
 const _ = require("lodash");
 const https = require('https');
@@ -553,11 +554,11 @@ function getCard(query, message, verbose = false) {
                 }
 
                 if (oracleIDs.length == 1) {
-                    getBestCard(query, options[0], channel)
+                    getBestCard(query, oracleIDs[0], channel)
                 } else if (oracleIDs.length > 1) {
-                    let row = new discord.MessageActionRow()
+                    let row = new MessageActionRow()
                         .addComponents(
-                            new discord.MessageSelectMenu()
+                            new MessageSelectMenu()
                                 .setCustomId('cardSelect')
                                 .setPlaceholder('Please select a card')
                                 .addOptions(options)
@@ -655,7 +656,7 @@ bot.on('interactionCreate', async interaction => {
 	if (!interaction.isSelectMenu()) return;
 
 	if (interaction.customId === 'cardSelect') {
-		getBestCard(interaction.message.content.substring(43), interaction.values, interaction.channel, interaction)
+		getBestCard(interaction.message.content.substring(43), interaction.values[0], interaction.channel, interaction)
 	}
 });
 
