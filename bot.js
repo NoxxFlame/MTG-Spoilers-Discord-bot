@@ -462,35 +462,35 @@ function getBestCard(oracleID, channel) {
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
                 Log(cardlist.total_cards + ' cards were found with oracle ID ' + oracleID);
-                for (let card in cardlist) { // First look for cards with prices matching restrictions
-                    if (cardlist[card].object != "card") continue;
-                    if (!cardlist[card].prices.usd) continue; // Ignore cards without prices
-                    if (cardlist[card].frame == "1997" && parseInt(cardlist[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
-                    if (cardlist[card].set == "sld") continue; // Ignore secret lairs
-                    if (cardlist[card].frame_effects) { // Ignore other showcase frames
+                for (let card in cardlist.data) { // First look for cards with prices matching restrictions
+                    if (cardlist.data[card].object != "card") continue;
+                    if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
+                    if (cardlist.data[card].frame == "1997" && parseInt(cardlist.data[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
+                    if (cardlist.data[card].set == "sld") continue; // Ignore secret lairs
+                    if (cardlist.data[card].frame_effects) { // Ignore other showcase frames
                         if (cardlist[card].frame_effects.includes("showcase")) continue;
                         if (cardlist[card].frame_effects.includes("extendedart")) continue;
                         if (cardlist[card].frame_effects.includes("etched")) continue;
                     }
-                    if (cardlist[card].security_stamp) { // Ignore universes beyond
-                        if (cardlist[card].security_stamp == "triangle") continue;
+                    if (cardlist.data[card].security_stamp) { // Ignore universes beyond
+                        if (cardlist.data[card].security_stamp == "triangle") continue;
                     }
-                    var embed = generateEmbed(cardlist[card], true);
+                    var embed = generateEmbed(cardlist.data[card], true);
                     channel.send({embeds: [embed]});
                     return;
                 }
 
-                for (let card in cardlist) { // Next look for cards with prices ignoring restrictions
-                    if (cardlist[card].object != "card") continue;
-                    if (!cardlist[card].prices.usd) continue; // Ignore cards without prices
-                    var embed = generateEmbed(cardlist[card], true);
+                for (let card in cardlist.data) { // Next look for cards with prices ignoring restrictions
+                    if (cardlist.data[card].object != "card") continue;
+                    if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
+                    var embed = generateEmbed(cardlist.data[card], true);
                     channel.send({embeds: [embed]});
                     return;
                 }
 
-                for (let card in cardlist) { // Finally find cards without prices
-                    if (cardlist[card].object != "card") continue;
-                    var embed = generateEmbed(cardlist[card], true);
+                for (let card in cardlist.data) { // Finally find cards without prices
+                    if (cardlist.data[card].object != "card") continue;
+                    var embed = generateEmbed(cardlist.data[card], true);
                     channel.send({embeds: [embed]});
                     return;
                 }
@@ -530,13 +530,12 @@ function getCard(query, message, verbose = false) {
                 Log(cardlist.total_cards + ' cards were found that matched the query ' + query);
                 let oracleIDs = [];
                 let options = [];
-                for (let card in cardlist) {
-                    if (cardlist[card].object != "card") continue;
-                    if (oracleIDs.includes(cardlist[card].oracle_id)) continue;
-                    oracleIDs.push(cardlist[card].oracle_id);
-                    options.push({"label":cardlist[card].name,"value":cardlist[card].oracle_id});
+                for (let card in cardlist.data) {
+                    if (cardlist.data[card].object != "card") continue;
+                    if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
+                    oracleIDs.push(cardlist.data[card].oracle_id);
+                    options.push({"label":cardlist.data[card].name,"value":cardlist.data[card].oracle_id});
                 }
-                console.log(options);
 
                 if (oracleIDs.length == 1) {
                     getBestCard(query, options[0], channel)
