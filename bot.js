@@ -253,11 +253,15 @@ function writeToAWS(filename, data) {
 }
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
-async function getAllCards(set, channelID, verbose = false) {
-    const channel = bot.channels.cache.get(channelID);
+async function getAllCards(set, channelID, verbose = false, threadParentID = false) {
+    let channel = bot.channels.cache.get(channelID);
+    if (threadParentID) {
+        let threadParent = bot.channels.cache.get(threadParentID);
+        channel = threadParent.threads.cache.get(channelID)
+    }  
 
     // Read which cards are already saved
-    let fileName = getFilename(set, channelID);
+    let fileName = getFilename(set, channelID, threadParentID);
     readFromAWS(fileName, function(ret) {
         let savedCardlist = JSON.parse("[]");
         if (ret == false) {
@@ -307,6 +311,11 @@ async function getAllCards(set, channelID, verbose = false) {
                     } else {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
 
+                        if (channel.isThread() && channel.archived) {
+                            channel.setArchived(false);
+                            Log("Unarchiving thread with ID " + channelID);
+                        }
+
                         var interval = setInterval(function(cards) {
                             if (cards.length <= 0) {
                                 Log('Done with sending cards to channel');
@@ -342,15 +351,23 @@ async function getAllCards(set, channelID, verbose = false) {
 
 function getAllCardsWrapper(set, message, verbose) {
     if (message.member.permissions.has("MANAGE_MESSAGES")) {
-        getAllCards(set, message.channel.id, verbose);
+        let threadParentID = false;
+        if (channel.isThread()) {
+            threadParentID = message.channel.parentId;
+        }
+        getAllCards(set, message.channel.id, verbose, threadParentID);
     } else {
         message.channel.send("You do not have permission to use that command.");
     }
 }
 
 // Returns the data filename for the given set and channelID
-function getFilename(set, channelID) {
-    return 'data/' + channelID + '-' + set.toUpperCase() + '-data.json';
+function getFilename(set, channelID, threadParentID) {
+    if (threadParentID) {
+        return 'data/' + threadParentID + '/' + channelID + '-' + set.toUpperCase() + '-data.json';
+    } else {
+        return 'data/' + channelID + '-' + set.toUpperCase() + '-data.json';
+    }
 }
 
 // Reads the array of watched sets and channel IDs from the data file and sends new cards to channels
@@ -365,7 +382,7 @@ function readWatchedSets() {
             var watchedSet = watchedSetcodes[i];
             Log('Watched set: ' + watchedSet.setCode + ' on channel ' + watchedSet.channelID);
             Log('Start looking for new cards in set ' + watchedSet.setCode + ' for channel ' + watchedSet.channelID);
-            getAllCards(watchedSet.setCode, watchedSet.channelID);
+            getAllCards(watchedSet.setCode, watchedSet.channelID, watchedSet.threadParentID);
         }
         writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
     });
@@ -376,6 +393,10 @@ function startSpoilerWatch(set, message, verbose = false) {
     if (message.member.permissions.has("MANAGE_MESSAGES")) {
         const channelID = message.channel.id;
         const channel = bot.channels.cache.get(channelID);
+        let threadParentID = false;
+        if (channel.isThread()) {
+            threadParentID = channel.parentId;
+        }
         Log('Start looking for new cards in set ' + set + ' for channel ' + channelID)
         if (verbose) channel.send('Starting spoilerwatch for set ' + set + '.');
         getAllCards(set, channelID);
@@ -385,7 +406,7 @@ function startSpoilerWatch(set, message, verbose = false) {
                 watchedSetcodes = JSON.parse(Buffer.from(ret).toString());
                 Log("Successfully read file " + WATCHEDSETCODESPATH);
             }
-            watchedSetcodes.push({"setCode":set, "channelID":channelID});
+            watchedSetcodes.push({"setCode":set, "channelID":channelID, "threadParentID":threadParentID});
             writeToAWS(WATCHEDSETCODESPATH, JSON.stringify(watchedSetcodes));
         });
     } else {
@@ -398,6 +419,10 @@ function stopSpoilerWatch(set, message, verbose = false) {
     if (message.member.permissions.has("MANAGE_MESSAGES")) {
         const channelID = message.channel.id;
         const channel = bot.channels.cache.get(channelID);
+        let threadParentID = false;
+        if (channel.isThread()) {
+            threadParentID = channel.parentId;
+        }
         readFromAWS(WATCHEDSETCODESPATH, function(ret) {
             let watchedSetcodes = [];
             if (ret) {
@@ -406,7 +431,7 @@ function stopSpoilerWatch(set, message, verbose = false) {
             }
             let found = -1;
             watchedSetcodes.forEach(function(watchedset) {
-                if (watchedset.setCode == set && watchedset.channelID == channelID) {
+                if (watchedset.setCode == set && watchedset.channelID == channelID && watchedset.threadParentID == threadParentID) {
                     found = watchedSetcodes.indexOf(watchedset);
                 }
             });
@@ -429,7 +454,11 @@ function clearAllCards(set, message, verbose = false) {
     if (message.member.permissions.has("MANAGE_MESSAGES")) {
         const channelID = message.channel.id;
         const channel = bot.channels.cache.get(channelID);
-        let fileName = getFilename(set, channelID);
+        let threadParentID = false;
+        if (channel.isThread()) {
+            threadParentID = channel.parentId;
+        }
+        let fileName = getFilename(set, channelID, threadParentID);
         try {
             writeToAWS(fileName, "[]");
             Log("Successfully cleared file " + fileName);
