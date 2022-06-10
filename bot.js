@@ -260,7 +260,7 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
         channel = threadParent.threads.cache.get(channelID);
         if (!channel) {
             let archivedThreads = await threadParent.threads.fetchArchived();
-            channel = archivedThreads.threads.get(id)
+            channel = archivedThreads.threads.get(channelID)
         }
     }  
 
