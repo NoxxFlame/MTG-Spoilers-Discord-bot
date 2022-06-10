@@ -464,6 +464,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                 Log(cardlist.total_cards + ' cards were found with oracle ID ' + oracleID);
                 for (let card in cardlist.data) { // First look for cards with prices matching restrictions
                     if (cardlist.data[card].object != "card") continue;
+                    if (cardlist.data[card].lang != "en") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
                     if (cardlist.data[card].frame == "1997" && parseInt(cardlist.data[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
@@ -484,6 +485,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
 
                 for (let card in cardlist.data) { // Next look for cards with prices ignoring restrictions
                     if (cardlist.data[card].object != "card") continue;
+                    if (cardlist.data[card].lang != "en") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
                     var embed = generateEmbed(cardlist.data[card], true);
@@ -493,6 +495,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
 
                 for (let card in cardlist.data) { // Finally find cards without prices
                     if (cardlist.data[card].object != "card") continue;
+                    if (cardlist.data[card].lang != "en") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
                     var embed = generateEmbed(cardlist.data[card], true);
                     channel.send({embeds: [embed]});
@@ -536,6 +539,7 @@ function getCard(query, message, verbose = false) {
                 let options = [];
                 for (let card in cardlist.data) {
                     if (cardlist.data[card].object != "card") continue;
+                    if (cardlist.data[card].lang != "en") continue;
                     if (cardlist.data[card].layout == "art_series") continue;
                     if (oracleIDs.includes(cardlist.data[card].oracle_id)) continue;
                     oracleIDs.push(cardlist.data[card].oracle_id);
