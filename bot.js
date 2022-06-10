@@ -555,11 +555,11 @@ function getCard(query, message, verbose = false) {
                     channel.send({"content":"Multiple cards found that match the query: "+query,"components":[row]})
                 } else {
                     Log('Did not find any cards that matched the query ' + query);
-                    if (verbose) channel.send('Did not find any cards that matched the query "' + query + '".');
+                    if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
                 }
             } else {
                 Log('Did not find any cards that matched the query ' + query);
-                if (verbose) channel.send('Did not find any cards that matched the query "' + query + '".');
+                if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
             }
         });
     }).on("error", (err) => {
