@@ -443,7 +443,7 @@ function clearAllCards(set, message, verbose = false) {
 }
 
 function getBestCard(oracleID, channel) {
-    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
@@ -509,7 +509,7 @@ function getCard(query, message, verbose = false) {
     const channelID = message.channel.id;
     const channel = bot.channels.cache.get(channelID);
     const cardQuery = query.toLowerCase();
-    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + encodeURIComponent(query + ' include:extras') + '&unique=prints', (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + ' include:extras') + '&unique=prints', (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
