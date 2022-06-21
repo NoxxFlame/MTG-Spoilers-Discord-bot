@@ -197,7 +197,7 @@ function generateEmbed(card, hasEmojiPermission, priceOverride = false) {
         card.image_uris = card.card_faces[0].image_uris;
     }
     
-    let description = generateDescriptionText(card, priceOverride = false);
+    let description = generateDescriptionText(card, priceOverride);
     if(hasEmojiPermission) {
         title = _.truncate(renderEmojis(title), {length: 256, separator: '<'});
         description = renderEmojis(description);
@@ -388,9 +388,12 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                 }).on("error", (err) => {
                                     Log("Error: " + err.message);
                                     channel.send('Error trying to get cards with oracle ID ' + card.oracle_id + './n' + 'Check the console for more details.');
+                                    var embed = generateEmbed(card, true);
+                                    Log('Sending ' + card.name + ' to channel');
+                                    channel.send({embeds: [embed]});
                                 });
                             }
-                        }, 2000, newCardlist);
+                        }, 1000, newCardlist);
 
                         try {
                             let savedCardlistJSON = JSON.stringify(savedCardlist);
