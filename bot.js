@@ -328,7 +328,6 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                 clearInterval(interval);
                             } else {
                                 let card = cards.pop();
-                                let price = false;
                                 https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent("oracle_id=" + card.oracle_id + ' include:extras') + '&unique=prints', (resp) => {
                                     let data = '';
 
@@ -346,8 +345,8 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                             return;
                                         }
 
+                                        let price = false;
                                         if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                                            Log(cardlist.total_cards + ' cards were found with oracle ID ' + card.oracle_id);
                                             for (let card in cardlist.data) { // First look for cards with prices matching restrictions
                                                 if (cardlist.data[card].object != "card") continue;
                                                 if (cardlist.data[card].lang != "en") continue;
