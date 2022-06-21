@@ -382,15 +382,14 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                         } else {
                                             Log('Did not find any cards with oracle ID ' + card.oracle_id);
                                         }
+                                        var embed = generateEmbed(card, true, price);
+                                        Log('Sending ' + card.name + ' to channel');
+                                        channel.send({embeds: [embed]});
                                     });
                                 }).on("error", (err) => {
                                     Log("Error: " + err.message);
                                     channel.send('Error trying to get cards with oracle ID ' + card.oracle_id + './n' + 'Check the console for more details.');
                                 });
-
-                                var embed = generateEmbed(card, true, price);
-                                Log('Sending ' + card.name + ' to channel');
-                                channel.send({embeds: [embed]});
                             }
                         }, 2000, newCardlist);
 
