@@ -347,7 +347,7 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                         }
 
                                         if (cardlist.object == 'list' && cardlist.total_cards > 0) {
-                                            Log(cardlist.total_cards + ' cards were found with oracle ID ' + oracleID);
+                                            Log(cardlist.total_cards + ' cards were found with oracle ID ' + card.oracle_id);
                                             for (let card in cardlist.data) { // First look for cards with prices matching restrictions
                                                 if (cardlist.data[card].object != "card") continue;
                                                 if (cardlist.data[card].lang != "en") continue;
@@ -380,12 +380,12 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                                 }
                                             }
                                         } else {
-                                            Log('Did not find any cards with oracle ID ' + oracleID);
+                                            Log('Did not find any cards with oracle ID ' + card.oracle_id);
                                         }
                                     });
                                 }).on("error", (err) => {
                                     Log("Error: " + err.message);
-                                    channel.send('Error trying to get cards with oracle ID ' + oracleID + './n' + 'Check the console for more details.');
+                                    channel.send('Error trying to get cards with oracle ID ' + card.oracle_id + './n' + 'Check the console for more details.');
                                 });
 
                                 var embed = generateEmbed(card, true, price);
