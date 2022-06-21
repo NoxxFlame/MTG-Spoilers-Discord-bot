@@ -255,7 +255,7 @@ function writeToAWS(filename, data) {
 }
 
 // Finds all new cards in the given set that haven't been posted to the given channel yet and posts them there
-async function getAllCards(set, channelID, verbose = false, threadParentID = false) {
+async function getAllCards(set, channelID, verbose = false, threadParentID = false, page = 1) {
     let channel = bot.channels.cache.get(channelID);
     if (threadParentID) {
         let threadParent = bot.channels.cache.get(threadParentID);
@@ -312,8 +312,12 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                     });
 
                     if (newCardlist.length <= 0) {
-                        Log('No new cards were found with set code ' + set);
-                        if (verbose) bot.channels.cache.get(channelID).send('No new cards were found with set code ' + set + '.');
+                        if (cardlist.has_more == true) {
+                            getAllCards(set, channelID, verbose, threadParentID, page + 1)
+                        } else {
+                            Log('No new cards were found with set code ' + set);
+                            if (verbose) bot.channels.cache.get(channelID).send('No new cards were found with set code ' + set + '.');
+                        }
                     } else {
                         Log(newCardlist.length + ' new cards were found with set code ' + set);
 
@@ -324,8 +328,12 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
 
                         var interval = setInterval(function(cards) {
                             if (cards.length <= 0) {
-                                Log('Done with sending cards to channel');
                                 clearInterval(interval);
+                                if (cardlist.has_more == true) {
+                                    getAllCards(set, channelID, verbose, threadParentID, page + 1)
+                                } else {
+                                    Log('Done with sending cards to channel');
+                                }
                             } else {
                                 let card = cards.pop();
                                 https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent("oracle_id=" + card.oracle_id + ' include:extras') + '&unique=prints', (resp) => {
