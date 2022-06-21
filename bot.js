@@ -285,7 +285,7 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
         
         if (verbose) bot.channels.cache.get(channelID).send('Trying to get newly spoiled cards from set with code ' + set + '...');
         
-        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints', (resp) => {
+        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints&page=' + page, (resp) => {
             let data = '';
 
             resp.on('data', (chunk) => {
