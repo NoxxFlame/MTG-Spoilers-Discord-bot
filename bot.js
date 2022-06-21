@@ -101,7 +101,7 @@ const s3 = new aws.S3({
 });
      
 // Generate the description of a card
-function generateDescriptionText(card) {
+function generateDescriptionText(card, priceOverride = false) {
     const ptToString = (card) =>
         '**'+card.power.replace(/\*/g, '\\*') + "/" + card.toughness.replace(/\*/g, '\\*')+'**';
 
@@ -144,7 +144,9 @@ function generateDescriptionText(card) {
         });
     }
 
-    if (card.prices.usd) {
+    if (priceOverride) {
+        description.push('\n**Price: $' + priceOverride + '**');
+    } else if (card.prices.usd) {
         description.push('\n**Price: $' + card.prices.usd + '**');
     } else {
         description.push('\n**No prices found**');
@@ -178,7 +180,7 @@ function getBorderColor(card) {
 }
 
 // Generate discord embed from card
-function generateEmbed(card, hasEmojiPermission) {
+function generateEmbed(card, hasEmojiPermission, priceOverride = false) {
     let title = card.name;
     if (card.mana_cost) {
         title += ' ' + card.mana_cost;
@@ -195,7 +197,7 @@ function generateEmbed(card, hasEmojiPermission) {
         card.image_uris = card.card_faces[0].image_uris;
     }
     
-    let description = generateDescriptionText(card);
+    let description = generateDescriptionText(card, priceOverride = false);
     if(hasEmojiPermission) {
         title = _.truncate(renderEmojis(title), {length: 256, separator: '<'});
         description = renderEmojis(description);
@@ -326,11 +328,71 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                 clearInterval(interval);
                             } else {
                                 let card = cards.pop();
-                                var embed = generateEmbed(card, true);
+                                let price = false;
+                                https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent("oracle_id=" + card.oracle_id + ' include:extras') + '&unique=prints', (resp) => {
+                                    let data = '';
+
+                                    resp.on('data', (chunk) => {
+                                        data += chunk;
+                                    });   
+                                    
+                                    resp.on('end', () => {
+                                        let cardlist;
+                                        try {
+                                            cardlist = JSON.parse(data);
+                                        } catch(error) {
+                                            Log("ERROR: Something went wrong with parsing data from Scryfall");
+                                            Log('ERROR:' + error);
+                                            return;
+                                        }
+
+                                        if (cardlist.object == 'list' && cardlist.total_cards > 0) {
+                                            Log(cardlist.total_cards + ' cards were found with oracle ID ' + oracleID);
+                                            for (let card in cardlist.data) { // First look for cards with prices matching restrictions
+                                                if (cardlist.data[card].object != "card") continue;
+                                                if (cardlist.data[card].lang != "en") continue;
+                                                if (cardlist.data[card].layout == "art_series") continue;
+                                                if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
+                                                if (cardlist.data[card].frame == "1997" && parseInt(cardlist.data[card].released_at.substring(0,4),10) > 2010) continue; // Ignore old showcase frames
+                                                if (cardlist.data[card].set == "sld") continue; // Ignore secret lairs
+                                                if (cardlist.data[card].border_color == "borderless") continue; // Ignore borderless
+                                                if (cardlist.data[card].frame_effects) { // Ignore other showcase frames
+                                                    if (cardlist.data[card].frame_effects.includes("showcase")) continue;
+                                                    if (cardlist.data[card].frame_effects.includes("extendedart")) continue;
+                                                    if (cardlist.data[card].frame_effects.includes("etched")) continue;
+                                                    if (cardlist.data[card].frame_effects.includes("inverted")) continue;
+                                                }
+                                                if (cardlist.data[card].security_stamp) { // Ignore universes beyond
+                                                    if (cardlist.data[card].security_stamp == "triangle") continue;
+                                                }
+                                                price = cardlist.data[card].prices.usd;
+                                                break;
+                                            }
+
+                                            if (!price) {
+                                                for (let card in cardlist.data) { // Next look for cards with prices ignoring restrictions
+                                                    if (cardlist.data[card].object != "card") continue;
+                                                    if (cardlist.data[card].lang != "en") continue;
+                                                    if (cardlist.data[card].layout == "art_series") continue;
+                                                    if (!cardlist.data[card].prices.usd) continue; // Ignore cards without prices
+                                                    price = cardlist.data[card].prices.usd;
+                                                    break;
+                                                }
+                                            }
+                                        } else {
+                                            Log('Did not find any cards with oracle ID ' + oracleID);
+                                        }
+                                    });
+                                }).on("error", (err) => {
+                                    Log("Error: " + err.message);
+                                    channel.send('Error trying to get cards with oracle ID ' + oracleID + './n' + 'Check the console for more details.');
+                                });
+
+                                var embed = generateEmbed(card, true, price);
                                 Log('Sending ' + card.name + ' to channel');
                                 channel.send({embeds: [embed]});
                             }
-                        }, 1000, newCardlist);
+                        }, 2000, newCardlist);
 
                         try {
                             let savedCardlistJSON = JSON.stringify(savedCardlist);
@@ -477,7 +539,7 @@ function clearAllCards(set, message, verbose = false) {
     }
 }
 
-function getBestCard(query, oracleID, channel, interaction = false) {
+function getBestCard(query, oracleID, channel) {
     https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', (resp) => {
         let data = '';
 
@@ -490,7 +552,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
             try {
                 cardlist = JSON.parse(data);
             } catch(error) {
-                Log("ERROR: Something went wrong with parsing data from Scryfall");mber
+                Log("ERROR: Something went wrong with parsing data from Scryfall");
                 Log('ERROR:' + error);
                 return;
             }
@@ -509,7 +571,7 @@ function getBestCard(query, oracleID, channel, interaction = false) {
                         if (cardlist.data[card].frame_effects.includes("showcase")) continue;
                         if (cardlist.data[card].frame_effects.includes("extendedart")) continue;
                         if (cardlist.data[card].frame_effects.includes("etched")) continue;
-			if (cardlist.data[card].frame_effects.includes("inverted")) continue;
+			            if (cardlist.data[card].frame_effects.includes("inverted")) continue;
                     }
                     if (cardlist.data[card].security_stamp) { // Ignore universes beyond
                         if (cardlist.data[card].security_stamp == "triangle") continue;
