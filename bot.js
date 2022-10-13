@@ -78,7 +78,8 @@ const manamojis = {
     "s":"manas:960696236355248168",
     "e":"manae:960689226922463232",
     "a":"manaa:960692260486381649",
-    "chaos":"manachaos:960689226830184488"
+    "chaos":"manachaos:960689226830184488",
+    "tk":"manatk:1029925615006126080"
 };
 
 // Colors for discord card embed
