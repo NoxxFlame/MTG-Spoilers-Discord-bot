@@ -142,6 +142,12 @@ function generateDescriptionText(card, priceOverride = false) {
             if (face.oracle_text) {
                 description.push(face.oracle_text.replace(/[()]/g, m => m === '(' ? '*(':')*'));
             }
+            if (card.loyalty) {
+                description.push('**Loyalty: ' + card.loyalty+'**');
+            }
+            if (card.defense) {
+                description.push('**Defense: ' + card.defense+'**');
+            }
             if (face.power) {
                 description.push(ptToString(face));
             }
