@@ -136,8 +136,8 @@ function generateDescriptionText(card, priceOverride = false) {
     }
     
     if (card.card_faces) {
-        // split cards are special
-        card.card_faces.forEach(face => {
+        // split/double faced cards are special
+        card.card_faces.forEach((face, index) => {
             description.push('**'+face.type_line+'**');
             if (face.oracle_text) {
                 description.push(face.oracle_text.replace(/[()]/g, m => m === '(' ? '*(':')*'));
@@ -151,7 +151,9 @@ function generateDescriptionText(card, priceOverride = false) {
             if (face.power) {
                 description.push(ptToString(face));
             }
-            description.push('');
+            if (index == 0) { // Add whitespace after the first face but not the second
+                description.push('');
+            }
         });
     }
 
