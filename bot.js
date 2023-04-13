@@ -126,6 +126,10 @@ function generateDescriptionText(card, priceOverride = false) {
     if (card.loyalty) { // bold loyalty
         description.push('**Loyalty: ' + card.loyalty+'**');
     }
+	
+    if (card.defense) { // bold defense
+        description.push('**Defense: ' + card.defense+'**');
+    }
     
     if (card.power) { // bold P/T
         description.push(ptToString(card));
