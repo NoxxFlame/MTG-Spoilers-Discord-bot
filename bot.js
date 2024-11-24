@@ -298,7 +298,7 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
         
         if (verbose) bot.channels.cache.get(channelID).send('Trying to get newly spoiled cards from set with code ' + set + '...');
         
-        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints&page=' + page, (resp) => {
+        https.get('https://api.scryfall.com/cards/search?order=spoiled&q=e%3A' + set + '&unique=prints&page=' + page, {headers: {'User-Agent': 'MTG-Spoilers-Discord-Bot', Accept: '*/*'}}, (resp) => {
             let data = '';
 
             resp.on('data', (chunk) => {
@@ -349,7 +349,7 @@ async function getAllCards(set, channelID, verbose = false, threadParentID = fal
                                 }
                             } else {
                                 let card = cards.pop();
-                                https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent("oracle_id=" + card.oracle_id + ' include:extras') + '&unique=prints', (resp) => {
+                                https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent("oracle_id=" + card.oracle_id + ' include:extras') + '&unique=prints', {headers: {'User-Agent': 'MTG-Spoilers-Discord-Bot', Accept: '*/*'}}, (resp) => {
                                     let data = '';
 
                                     resp.on('data', (chunk) => {
@@ -562,7 +562,7 @@ function clearAllCards(set, message, verbose = false) {
 }
 
 function getBestCard(query, oracleID, channel) {
-    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=spoiled&q=' + encodeURIComponent(query + " oracle_id=" + oracleID + ' include:extras') + '&unique=prints', {headers: {'User-Agent': 'MTG-Spoilers-Discord-Bot', Accept: '*/*'}}, (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
@@ -687,7 +687,7 @@ function getCard(query, message, verbose = false) {
     const channelID = message.channel.id;
     const channel = bot.channels.cache.get(channelID);
     const cardQuery = query.toLowerCase();
-    https.get('https://api.scryfall.com/cards/search?order=name&q=' + encodeURIComponent(query + ' include:extras'), (resp) => {
+    https.get('https://api.scryfall.com/cards/search?order=name&q=' + encodeURIComponent(query + ' include:extras'), {headers: {'User-Agent': 'MTG-Spoilers-Discord-Bot', Accept: '*/*'}}, (resp) => {
         let data = '';
 
         resp.on('data', (chunk) => {
