@@ -704,7 +704,7 @@ function getCard(query, message, verbose = false) {
                 return;
             }
 
-            Log(cardlist);
+            Log(data);
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
                 if (cardlist.has_more) {
