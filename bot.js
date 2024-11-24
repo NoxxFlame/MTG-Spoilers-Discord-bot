@@ -705,6 +705,7 @@ function getCard(query, message, verbose = false) {
             }
 
             if (cardlist.object == 'list' && cardlist.total_cards > 0) {
+                Log('Found cards');
                 if (cardlist.has_more) {
                     Log('Too many cards matching query ' + query);
                     if (verbose) channel.send('More than 25 cards found that matched the query: ' + query + '. Please refine your search and try again.');
@@ -742,11 +743,13 @@ function getCard(query, message, verbose = false) {
                             );
                         channel.send({"content":"Multiple cards found that match the query: "+query,"components":[row]})
                     } else {
+                        Log('No valid found cards');
                         Log('Did not find any cards that matched the query ' + query);
                         if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
                     }
                 }
             } else {
+                Log('No found cards');
                 Log('Did not find any cards that matched the query ' + query);
                 if (verbose) channel.send('Did not find any cards that matched the query: ' + query + '');
             }
